@@ -1,0 +1,472 @@
+---
+title: "MKI - Ch 11 - PQ Plots"
+output: html_document
+---
+
+# Clean `P`, `Q`, and `N_{ij}`
+
+The lines below describe the cleaning of variables P, Q, N (updated Nij), and N_good (updated m10). Notes by study below:
+
+```{r setup_PQ, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+
+  # This Rmd can be run as a standlone (and call up data etc); or can be called as part of replication. 
+  standalone <- FALSE
+
+  #setup
+  # rm(list=ls(all=TRUE))
+  require("knitr"); library(knitr)
+  opts_chunk$set(warning = FALSE)
+  options(knitr.kable.NA = '')
+  options(knitr.duplicate.label = 'allow')
+  
+  #packages
+  packages <- c("reshape","dotwhisker","plyr","dplyr","foreign","tidyverse",
+                "lfe","stargazer","clubSandwich","haven","xtable",
+                "readstata13", "xlsx", "rstudioapi")
+  lapply(packages, function(x) if (!require(x, character.only=TRUE)){
+    install.packages(x); require(x); library(x, character.only = TRUE)})
+  
+  #SET OPTIONS
+  # clean data option
+  run_cleaning <- FALSE
+  reverse_benin <- TRUE
+  reverse_uganda_2 <- FALSE
+
+```
+
+```{r setup2, eval=standalone, include = FALSE}
+
+  #load functions
+  source("0a_functions_main.R")
+  source("0b_functions_ri.R")
+```
+
+```{r, include=FALSE, eval=standalone}
+
+  if(run_cleaning){
+  source("1a_prep_clean.R")
+  rm(list = ls(pattern = "^ben|^brz|^bf|^mex|^ug|^comp"))
+  }
+  
+  if(standalone) {
+      # load data
+    files <- list.files("data/temp", pattern = "covinter", full.names = TRUE)
+    for (f in files){
+      load(f)
+    }
+  }
+```
+
+```{r PQ_data, include = FALSE}
+
+  all <- list(ben, brz, bf, mexsur, ug1, ug2)
+
+  #check Nij
+  lapply(all, function(x) summary(x$nij))
+```
+
+
+**Benin** Q is taken as the difference between m9 and Nij. The scale of priors is coded from 1 (best possible prior) to 4 (worst possible prior), so we invert the scales of both P and Q such that Q $>$ P means good news, Q < P means bad news.
+
+```{r}
+# Benin
+
+# REVIEW
+
+# Benin study calculates N such that N = P - Q so that good news are positive
+# given the scale of priors and information is 1 for best possible prior and
+# 4 for worst possible prior:
+
+# Consider [NAME OF REP], does she/he participate in plenary sessions of
+# the National Assembly much more, a little more, a little less or much less
+# than other deputies in this Department? (1) Much more; (2) A little more;
+# (3) A little less; (4) Much less.
+
+# There is a slight inconsistency with the way Q is described in the MS (p. 106-107):
+# "we measure the difference between the voter's prior belief and the actual
+# performance information given in treatment, which were both measured and
+# presented on the same four-point scale. For example, a respondent whose
+# prior is that the incumbent is much worse" than other deputies (score of 1)
+# but finds out that the incumbent was actually much better" than the other
+# deputies (score of 4), would be scored as a 3 on this distance measure and
+# be included in the good news subset."
+
+# code P and Q
+ben$Q <- ben$performance
+ben$P <- ben$m9
+
+if(reverse_benin){
+  # ben$Q <- 5 - ben$Q
+  ben$P <- 5 - ben$P
+}
+
+# News (distance P and Q)
+ben$N <- ben$Q - ben$P
+
+#N_good (previous m10)
+ben$N_good <- with(ben, ifelse(Q > P | Q==P & Q >= median(Q, na.rm = T), 1, #median across all communes
+                        ifelse(Q < P | Q==P & Q < median(Q, na.rm = T), 0, NA)))
+
+#Code good news based on information when P is missing
+ben$N_good[is.na(ben$P) & ben$Q >= median(ben$Q, na.rm = T)] <- 1
+ben$N_good[is.na(ben$P) & ben$Q < median(ben$Q, na.rm = T)] <- 0
+
+#Q_good (good news measure based entirely on median Q)
+ben$Q_good <- with(ben, ifelse(Q >= median(Q, na.rm = T), 1,
+                        ifelse(Q < median(Q, na.rm = T), 0, NA)))
+
+table(ben$m10, ben$N_good, useNA = "a")
+```
+
+**Brazil** main cleaning consisted of inverting the coding of m9, which previously had 0 for prior of account approved, and 1 for prior of account rejected, to the opposite. This is consistent with the coding of Q, created from m10 (good news). Q and P are both based on whether accounts were rejected (0 if rejected, 1 if approved).
+
+```{r, include=FALSE}
+# m9 uses acc_rejected_prior
+# acc_rejected_prior: Equals 1 if the respondent's prior belief is that the TCE-PE rejected the
+# accounts of the incumbent mayor, 0 otherwise.
+# m10 uses the inverse of acc_rejected, which Equals 1 if the TCE-PE rejected the accounts of the incumbent mayor in 2013 and
+# 0 if the accounts were approved (with or without reservations).
+```
+
+```{r}  
+# Brazil
+# Create P and Q
+brz$Q <- brz$m10
+
+# m10 uses the inverse of acc_rejected, which Equals 1 if account is rejected and
+# 0 if the accounts were approved
+# m9 is recoded to match the coding of Q/m10
+brz$P <- 1 - brz$m9
+  
+# News (distance P and Q)
+brz$N <- with(brz, ifelse(Q==1, 1, ifelse(Q<P, -1, ifelse(Q==P & P==0, 0, NA))))
+
+#N_good (previous m10)
+brz$N_good <- brz$m10 # whether account was approved
+
+#Q_good (good news measure based entirely on median Q)
+brz$Q_good <- with(brz, ifelse(Q >= median(Q, na.rm = T), 1,
+                        ifelse(Q < median(Q, na.rm = T), 0, NA)))
+```
+
+**Burkina** required no cleaning of P and Q.
+```{r}
+#Burkina
+
+# Code P and Q
+bf$P <- bf$m9
+bf$Q <- bf$performance.quantile
+
+# REVIEW
+all.equal(bf$P-bf$Q, bf$nij) # inverted Nij signs
+
+# News (distance P and Q)
+bf$N <- bf$Q-bf$P
+  
+#N_good (previous m10)
+bf$N_good <- with(bf, ifelse(Q > P | (Q==P & Q >= median(Q, na.rm = T)), 1,
+                      ifelse(Q < P | (Q==P & Q < median(Q, na.rm = T)), 0, NA)))
+
+#Q_good (good news measure based entirely on median Q)
+bf$Q_good <- with(bf, ifelse(Q >= median(Q, na.rm = T), 1,
+                        ifelse(Q < median(Q, na.rm = T), 0, NA)))
+
+# REVIEW
+# Small differences in the coding of good news when P = Q
+table(bf$m10, bf$N_good, useNA = "a")
+```
+
+
+**Mexico**: we don't have priors so we use `mexsur$diff` $Q$ estimate good news based on median Q across municipalities.
+
+```{r}
+# Mexico
+#Q is calculated as the difference in percentage malfeasance between own party and other party
+#Q > median of Q is good news
+mexsur$Q <- mexsur$diff
+  
+Q_mun_med <- median(unique(mexsur[,c("diff","uniqueid")])$diff) #median of municipality Q
+
+# News (Q above/below median malfeasance across municipalities)
+mexsur$N <- with(mexsur, ifelse(Q >= Q_mun_med, 1,          
+                         ifelse(Q < Q_mun_med, 0, NA)))
+  
+#N_good (previous m10)
+mexsur$N_good <- mexsur$N
+
+#Q_good (good news measure based entirely on median Q)
+mexsur$Q_good <- mexsur$N
+
+# REVIEW
+table(mexsur$N_good, mexsur$nij, useNA = "a")
+```
+
+
+```{r, include = FALSE}
+  ###ug1###
+  
+  ##STATA CODE##
+  # gen newssector = .
+  # replace newssector = -3 if mppriorug == 1 & mpsectoralign == 0
+  # replace newssector = -2 if mppriorug == . & mpsectoralign == 0
+  # replace newssector = -1 if mppriorug == 0 & mpsectoralign == 0
+  # replace newssector =  1 if mppriorug == 1 & mpsectoralign == 1
+  # replace newssector =  2 if mppriorug == . & mpsectoralign == 1
+  # replace newssector =  3 if mppriorug == 0 & mpsectoralign == 1
+  # la var newssector "News received on MPs priority sector"
+  # 
+  # gen newsdistrict = .
+  # replace newsdistrict = -3 if mpdistrictalign_perc == 1 & mpdistrictalign == 0
+  # replace newsdistrict = -2 if mpdistrictalign_perc == . & mpdistrictalign == 0
+  # replace newsdistrict = -1 if mpdistrictalign_perc == 0 & mpdistrictalign == 0
+  # replace newsdistrict =  1 if mpdistrictalign_perc == 1 & mpdistrictalign == 1
+  # replace newsdistrict =  2 if mpdistrictalign_perc == . & mpdistrictalign == 1
+  # replace newsdistrict =  3 if mpdistrictalign_perc == 0 & mpdistrictalign == 1
+  # la var newsdistrict "News received on MPs district splitting policy pref"
+  # 
+  # gen newsmoney = .
+  # replace newsmoney = -3 if mpmoneyalign_perc == 1 & mpmoneyalign == 0
+  # replace newsmoney = -2 if mpmoneyalign_perc == . & mpmoneyalign == 0
+  # replace newsmoney = -1 if mpmoneyalign_perc == 0 & mpmoneyalign == 0
+  # replace newsmoney =  1 if mpmoneyalign_perc == 1 & mpmoneyalign == 1
+  # replace newsmoney =  2 if mpmoneyalign_perc == . & mpmoneyalign == 1
+  # replace newsmoney =  3 if mpmoneyalign_perc == 0 & mpmoneyalign == 1
+  # la var newsmoney "News received on MPs vote buying ban pref"
+  # 
+  # *Calculate distance: Expert assessment - voter prior
+  # 
+  # *Competence
+  # g ratequalified_dist = ratequalified_ep - ratequalified_norm if individual==1 & treatment_ind!=2
+  # tab ratequalified_dist
+  # replace ratequalified_dist = ratequalified_dist/2
+  # 
+  # *Understand policy
+  # g candunderstand_dist = candunderstand_ep - candunderstand_norm if individual==1 & treatment_ind!=2
+  # hist candunderstand_dist
+  # replace candunderstand_dist = candunderstand_dist/2
+  # 
+  # *Eloquence
+  # g candexpress_dist = candexpress_ep - candexpress_norm if individual==1 & treatment_ind!=2
+  # hist candexpress_dist
+  # replace candexpress_dist = candexpress_dist/2
+  # 
+  # *B. Policy alignment
+  # 
+  # **News on policy alignment (constructed above, see PAP). [-3, 3]
+  # *Normalize newsdistrict newssector newsmoney to [-1,1]
+  # 
+  # gen newssector_dist = newssector/3
+  # gen newsdistrict_dist = newsdistrict/3
+  # gen newsmoney_dist = newsmoney/3
+  # 
+  # * 2. Contruct average for each voter-candidate dyad
+  # 
+  # gen news_dist = (newssector_dist * sameprio_relweight) + (newsdistrict_dist * samedistr_relweight) + (newsmoney_dist * votebuyingpos_relweight) + (candexpress_dist * express_relweight) + (candunderstand_dist * issue_relweight) + (ratequalified_dist * wellqualif_relweight)
+  # su sameprio_relweight
+
+```
+
+**Uganda 1** does not have aggregate values of $P$ or $Q$, so we create values of $P$ following normalization as they used to create their "dist" variables (though rescaling only the last three dimensions of information), as below. We then generate $Q$ based on the study measure of $QN_{ij}$ such that $Q=P+N_{ij}$. We also generate $Q_alt$ following the same process used to generate $P$. This choice of coding places smaller weight on missing priors in the aggregation and no weight on dimensions in which $P=Q$. We report those results in the Appendix.
+
+```{r}
+  # We use the same normalization as they used to create their "dist" variables (though rescaling the last three vars), as below.
+  ug1$mppriorug <- ifelse(as.character(ug1$mppriorug == "Yes"), 1, ifelse(as.character(ug1$mppriorug=="No"), 0, NA))
+ 
+  # Replace missing priors with 0.5 for consistency with country study
+  ug1$P_mppriorug <- ifelse(is.na(ug1$mppriorug), 0.5, ug1$mppriorug)
+  ug1$P_mpdistrictalign_perc <- ifelse(is.na(ug1$mpdistrictalign_perc), 0.5, ug1$mpdistrictalign_perc)
+  ug1$P_mpmoneyalign_perc <- ifelse(is.na(ug1$mpmoneyalign_perc), 0.5, ug1$mpmoneyalign_perc)
+  
+  # v <- ug1$individual==1
+  
+  ug1$P <- with(ug1, (P_mppriorug)*sameprio_relweight +
+                      (P_mpdistrictalign_perc)*samedistr_relweight +
+                      (P_mpmoneyalign_perc)*votebuyingpos_relweight +
+                      (candexpress_norm/2)*express_relweight +
+                      (candunderstand_norm/2)*issue_relweight +
+                      (ratequalified_norm/2)*wellqualif_relweight)
+  
+  ug1$Q_alt <- with(ug1, (mpsectoralign)*sameprio_relweight +
+                      (mpdistrictalign)*samedistr_relweight +
+                      (mpmoneyalign)*votebuyingpos_relweight +
+                      (candexpress_ep/2)*express_relweight +
+                      (candunderstand_ep/2)*issue_relweight +
+                      (ratequalified_ep/2)*wellqualif_relweight)
+  
+  # News based on Uganda 1 study
+  ug1$N <- ug1$nij
+  
+  #Information based on Uganda 1 study
+  ug1$Q <- ug1$P + ug1$N
+    
+  # News alternative (distance P and Q)
+  ug1$N_alt <- ug1$Q_alt-ug1$P
+
+  #N_good (m10)
+  ug1$N_good <- ug1$m10
+  
+  #N_good alternative (previous m10)
+  ug1$N_good_alt <- with(ug1, ifelse(Q > P | (Q==P & Q >= median(Q, na.rm = T)), 1,
+                          ifelse(Q < P | (Q==P & Q < median(Q, na.rm = T)), 0, NA)))
+  
+  #Q_good (good news measure based entirely on median Q)
+  ug1$Q_good <- with(ug1, ifelse(Q >= median(Q, na.rm = T), 1,
+                          ifelse(Q < median(Q, na.rm = T), 0, NA)))
+
+  #Discrepancy in scales of P and Q for certain dimensions
+  checkP <- ug1 %>% dplyr::select(mppriorug, mpdistrictalign_perc, mpmoneyalign_perc, candexpress_norm, candunderstand_norm, ratequalified_norm)
+  checkQ <- ug1 %>% dplyr::select(mpsectoralign, mpdistrictalign, mpmoneyalign, candexpress_ep, candunderstand_ep, ratequalified_ep)
+  lapply(1:6, function(x) summary(checkP[,x]))
+  lapply(1:6, function(x) summary(checkQ[,x]))
+```
+
+```{r}
+   plot(ug1$N, ug1$nij)
+```
+
+  
+```{r, include = FALSE}
+  table(ug1$N_good, ug1$m10)
+  checkP <- ug1 %>% dplyr::select(mppriorug, mpdistrictalign_perc, mpmoneyalign_perc, candexpress_norm, candunderstand_norm, ratequalified_norm)
+  checkQ <- ug1 %>% dplyr::select(mpsectoralign, mpdistrictalign, mpmoneyalign, candexpress_ep, candunderstand_ep, ratequalified_ep)
+  lapply(1:6, function(x) summary(checkP[,x]))
+  lapply(1:6, function(x) summary(checkQ[,x]))
+  # Issue arises from News decision making  sector by sector
+  # plot(ug1dat$newssector_dist, ug1dat$mpsectoralign - ug1dat$mppriorug)
+```
+
+**Uganda 2**: P and Q are presented in reverse scale (1 being best possible prior and 5 being worst possible prior) in the survey, but have been reversed in generating the raw data. Both P and Q are recoded so that Q > P means good news.
+
+```{r}
+# Uganda 2
+
+# REVIEW
+
+# According to PAP, prior is coded as 1 being best possible prior and 4 being worst
+# possible prior:
+# If you compare your LC5's record of managing its budget expenditures and
+# contracting to other districts in Uganda how do you think it will compare?
+# (1) much better, (2) better, (3) a little worse, (4) much worse, (8) don't
+# know, (9) refused to answer
+
+# PAP and MS (p 223) define P and Q as having the same 4-point scale, but the data
+# suggest that budget.prior = 3 if response to prior questions is "don't know." See:
+table(ug2$budget.prior, ug2$budget.prior.dontknow)
+
+# Below we have changed the coding of m10 from previous version to account for the
+# fact that higher values of budget.actual and budget.prior meant worse performance.
+
+ug2$N_good <-with(ug2, ifelse(budget.actual > budget.prior |
+                             (budget.actual== budget.prior & budget.actual>=4), 1,
+                       ifelse(budget.actual < budget.prior |
+                             (budget.actual== budget.prior & budget.actual<=2), 0, NA)))
+
+# table(ug2$N_good, useNA = "a")
+
+# Code P and Q
+ug2$Q <- ug2$budget.actual
+ug2$P <- ug2$budget.prior
+
+if(reverse_uganda_2){
+  ug2$Q  <- 6-ug2$Q
+  ug2$P  <- 6-ug2$P
+}
+
+# Nij for Uganda 2 was calculated as Q - P, and because Q and P are coded
+# in scale where 1 is best possible prior and 5 is for worse possible prior,
+identical(ug2$nij,ug2$budget.actual-ug2$budget.prior)
+
+# We regenerate Nij as
+ug2$N <- ug2$budget.actual-ug2$budget.prior
+
+#N_good # this would be the measure if we were to follow the median rule,
+#but we decide to follow the definition given in the chapter
+# ug2$N_good <- with(ug2, ifelse(Q > P | (Q==P & Q >= median(Q, na.rm = T)), 1,
+#                         ifelse(Q < P | (Q==P & Q < median(Q, na.rm = T)), 0, NA)))
+
+#Q_good (good news measure based entirely on median Q)
+ug2$Q_good <- with(ug2, ifelse(Q >= median(Q, na.rm = T), 1,
+                        ifelse(Q < median(Q, na.rm = T), 0, NA)))
+
+```
+
+```{r, include=FALSE}
+table(ug2$N_good, ug2$m10)
+all.equal(ug2$P-ug2$Q, ug2$nij)
+all.equal(ug2$Q-ug2$P, ug2$N)
+```
+
+```{r, include=FALSE}
+  # save(ben, file = "data/temp/ben_covinter_clean.Rda")
+  # save(mexsur, file = "data/temp/mex_covinter_clean.Rda")
+  # save(ug1, file = "data/temp/ug1_covinter_clean.Rda")
+  # save(ug2, file = "data/temp/ug2_covinter_clean.Rda")
+  # save(brz, file = "data/temp/brz_covinter_clean.Rda")
+  # save(bf, file = "data/temp/bf_covinter_clean.Rda")
+```
+
+# Metanalysis data
+
+```{r}
+
+  # Create P - Q graphing function
+  
+  # Load and append country data
+  # files <- list.files("data/temp", pattern = "covinter", full.names = TRUE)
+  # for (f in files) {
+  #   load(f)
+  # }
+
+  # Metanalysis data
+  madatpq <- rbind.fill(ben, brz, bf, mexsur, ug1, ug2)
+
+  #standarize P and Q so that both P has mean 0 , sd 1 and Q normalized with same scaling
+    madatpq <- madatpq %>%
+    group_by(ctry) %>%
+    mutate(
+          Pi = (P - mean(P, na.rm = TRUE))/sd(P, na.rm = TRUE),
+          Qi  = (Q - mean(P, na.rm = TRUE))/sd(P, na.rm = TRUE),
+          Nchecki = Q - P,
+          Nchecki = (Nchecki - mean(Nchecki, na.rm = TRUE))/sd(Nchecki, na.rm = TRUE ) 
+          ) %>%
+    ungroup()
+
+```
+    
+# PQ plots
+
+```{r echo=FALSE, fig.height = 8, fig.width = 16, fig.cap= "\\label{fig.PQ} Grey circles indicate good news, black circles bad news. News is good if information exceeds priors, or if it confirms positive priors. No priors data is available for Mexico. Red line indicates linear fit between priors and information. For Uganda 1 there are some cases where news is classed as good even though the average priors across dimensions are higher than average information across dimensions since tie breaking rules were employed dimension by dimension. In the `All studies' figure, $P$ and $Q$ have a common normalization such that priors are centered at 0 with a standard deviation of 1."}
+
+  source("fig_PQ_graph.R")
+  PQ_graph()
+
+```
+
+
+```{r, include = FALSE}
+# Export graph   
+# pdf("figures/PQ.pdf", height = 8, width = 16)
+#   PQ_graph()
+# dev.off()
+# 
+# if(export_to_book){
+# pdf(paste0(book_dir, "/fig_3_PQ.pdf"), height = 8, width = 16)
+#   PQ_graph()
+# dev.off()
+# }
+```
+
+
+## Notes
+
+
+* The value for P for Benin was inverted so that the scale now goes from worst possible prior/quality to best possible prior/quality, matching the coding of Q given. This harmonizes the interpretation of good and bad news in the PQ graphs with respect to the 45-degree line. It also creates some inconsistency with the presentation of these scales in the study chapters.
+
+* Uganda 1 are generated using an aggregate measure of P created for the purpose of this analysis. Q is generated from the study aggregate measure of N in the study and the measure of P we constructed (Q = P + N). In order to ensure consistency of N values with the study, P and Q are not in the same scale, which results in goodnews not lying strictly above the 45-degree line and vice-versa.
+
+* Uganda 2 appears to have a 1-5 scale for both P and Q, instead of 1-4 scale detailed in (MK p223).
+
+* Mexico histogram shows values of Q, defined as the difference between the percentage of "unauthorized or misallocated spending, relative to municipalities within the same state that were governed by a different political party." (MK p78)
+
+* Burkina Faso has a skewed P distribution and this is why it looks like a block is shifted to one side in the all countries graph.
+
