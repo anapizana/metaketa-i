@@ -6,7 +6,7 @@ The files are structured as follows:
 
 * `/ch11_meta-analysis` contains replication files for Chapter 11: Meta-Analysis 
 
-	* `_Replicate_Metanalysis_Metaketa_1.Rmd` runs all scripts needed for replication of Chapter 11 figures
+	* `_Replicate_Metanalysis_Metaketa_1.Rmd` runs all scripts needed for replication of Chapter 11 figures and tables
 
 	* `/code_formatting` contains R scripts for formatting table and figure outputs into the versions used in the text
 
