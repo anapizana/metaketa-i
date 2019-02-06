@@ -36,7 +36,7 @@ fileConn <- file("tables/tab_11.3_effort_honesty.tex")
 ri_line <- grep("RI", t11.3)
 
 n <- length(t11.3)
-notes <- c("\\begin{flushleft}\\textit{Note:} The table reports the effect of the treatment on voters' perception of how hard-working (MPAP measure M5) and dishonest (MPAP measure M6) the incumbent politician is. We pool Benin, Burkina Faso, Uganda 1, and Uganda 2 in columns (1) and (3), and Benin, Burkina Faso, Mexico, and Uganda 2 in columns (2) and (4). MPAP measures M5 (effort) and M6 (dishonesty). Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment.\\end{flushleft}", "\\begin{flushleft} $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$\\end{flushleft}")
+notes <- "\\begin{flushleft}\\textit{Note:} The table reports the effect of the treatment on voters' perception of how hard-working (MPAP measure M5) and dishonest (MPAP measure M6) the incumbent politician is. We pool Benin, Burkina Faso, Uganda 1, and Uganda 2 in columns (1) and (2), and Benin, Burkina Faso, Mexico, and Uganda 2 in columns (3) and (4). MPAP measures M5 (effort) and M6 (dishonesty). Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \\end{flushleft}"
 joint_p <- paste0("Joint RI $p$-value & \\multicolumn{2}{c}{", p_gb_m5pool_unadj , "} & \\multicolumn{2}{c}{", p_gb_m6pool_unadj , "} \\\\")
 t11.3 <- list(t11.3[1:ri_line], joint_p, t11.3[(ri_line+1):(n-1)], notes, t11.3[n])
 
