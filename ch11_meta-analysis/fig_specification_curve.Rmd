@@ -30,6 +30,7 @@ standalone <- FALSE #whether running this file independently or rendering in mai
 
 ```{r, echo=FALSE, eval=standalone, warning=FALSE, message=FALSE}
 library(tidyr); library(plyr); library(dplyr); library(lfe); library(ggplot2);library(gridExtra)
+library(xtable)
 
 source("0a_functions_main.R")
 
@@ -54,7 +55,9 @@ run_spec <- function(leave_out,
                      cov,
                      with_N,
                      contested_seats,
-                     exclude_councilors
+                     exclude_councilors,
+                     exclude_redistrict,
+                     exclude_switch
                      ){
   
   dat <- madat
@@ -100,6 +103,15 @@ run_spec <- function(leave_out,
   
   if(is.na(good)) good <- NULL
   
+  if(exclude_redistrict){
+    dat <- dat[is.na(dat$lc5.councillor.redistricted2016)|dat$lc5.councillor.redistricted2016=="TRUE",]
+  }
+  
+  if(exclude_switch){
+    dat <- dat[is.na(dat$lc5.chair.party.switch)|dat$lc5.chair.party.switch==0,]
+    dat <- dat[is.na(dat$lc5.councillor.party.switch)|dat$lc5.councillor.party.switch==0,]
+  }
+  
   if(cl_pol){
     dat$cl <- dat$cl_pol    
     est <- estimates(dat = dat,
@@ -138,7 +150,9 @@ args <- list(
   cov = c("", "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"),
   with_N = c(TRUE, FALSE),
   contested_seats = c(TRUE, FALSE),
-  exclude_councilors = c(TRUE, FALSE)
+  exclude_councilors = c(TRUE, FALSE),
+  exclude_redistrict = c(TRUE, FALSE),
+  exclude_switch = c(TRUE, FALSE)
   )
 
 args_m <- expand.grid(args, stringsAsFactors = FALSE)
@@ -147,7 +161,8 @@ args_m <- expand.grid(args, stringsAsFactors = FALSE)
 # Get rid of redundant/non-sensical specifications
 ```{r}
 args_m <- args_m %>% 
-  filter(!(leave_out == "ug2" & (contested_seats == TRUE | exclude_councilors == TRUE))) %>% 
+  filter(!(leave_out == "ug2" & (contested_seats == TRUE | exclude_councilors == TRUE | 
+                                   exclude_redistrict == TRUE | exclude_switch == TRUE))) %>% 
   filter(!(leave_out == "bf" & bf_m1_recode == TRUE)) %>%
   filter(!(leave_out == "mex" & mex_m10_recode == TRUE)) %>%
   filter(!(leave_out == "ug1" & ug1_m10_recode == TRUE))
@@ -224,12 +239,16 @@ prep_graph <- function(mat, args){
                         categ == "NA_P_recode_ TRUE" ~ "P dropped when missing",
                         categ == "mex_m10_recode_FALSE" ~ "Mexico: News coded using Q",
                         categ == "mex_m10_recode_ TRUE" ~ "Mexico: News coded using posterior-prior",
-                        categ == "ug1_m10_recode_FALSE" ~ "Uganda 1: News!=0 when P=0", 
-                        categ == "ug1_m10_recode_ TRUE" ~ "Uganda 1: News=0 when P=0",
+                        categ == "ug1_m10_recode_FALSE" ~ "Uganda 1: News!=0 when P=Q", 
+                        categ == "ug1_m10_recode_ TRUE" ~ "Uganda 1: News=0 when P=Q",
                         categ == "bf_m1_recode_FALSE" ~ "Burkina: M1 not recoded",
                         categ == "bf_m1_recode_ TRUE" ~ "Burkina: M1=0 when M3=0",
                         categ == "exclude_councilors_FALSE" ~ "Uganda 2: include LCV councilors",
                         categ == "exclude_councilors_ TRUE" ~ "Uganda 2: exclude LCV councilors",
+                        categ == "exclude_redistrict_FALSE" ~ "Uganda 2: include redistricted councilors",
+                        categ == "exclude_redistrict_ TRUE" ~ "Uganda 2: exclude redistricted councilors",
+                        categ == "exclude_switch_FALSE" ~ "Uganda 2: include party switches",
+                        categ == "exclude_switch_ TRUE" ~ "Uganda 2: exclude party switches",
                         categ == "contested_seats_FALSE" ~ "Uganda 2: Include uncontested seats",
                         categ == "contested_seats_ TRUE" ~ "Uganda 2: Exclude uncontested seats",
                         categ == "leave_out_ug2" ~ "Leave out: Uganda 2",
@@ -240,18 +259,21 @@ prep_graph <- function(mat, args){
                         categ == "leave_out_ben" ~ "Leave out: Benin",
                         categ == "leave_out_none" ~ "Leave out: Include all"))
   df$categ <- factor(df$categ,
-                     levels = c(unique(df$categ)[1:13], unique(df$categ)[25:28], setdiff(unique(df$categ)[14:24], "ALL SPECIFICATIONS"), "ALL SPECIFICATIONS"))
+                     levels = c(unique(df$categ)[1:13], unique(df$categ)[25:32], setdiff(unique(df$categ)[14:24], "ALL SPECIFICATIONS"), "ALL SPECIFICATIONS"))
   df
 }
+
+
 
 plot_spec_ate <- function(mat, args, title=""){
   df <- prep_graph(mat, args)
   df$term <- df$categ
   df$y_ind <- as.numeric(df$categ)
-  
+  # df$sign_95 <- factor(df$sign_95, levels = c(TRUE, FALSE))
   p <- ggplot(data=df) +
-    geom_point(aes(y = categ, x = ate, color=sign_95), shape = 3, size = .5) +
+    geom_point(aes(y = categ, x = ate, color=sign_95, alpha = sign_95), shape = 3, size = .5) +
     theme_bw() + 
+    scale_alpha_discrete(range=c(.1, .6)) +
     scale_color_manual(values=c("grey", "black")) +
     theme(legend.position="none") + 
     labs(title = title) +
@@ -341,7 +363,112 @@ share_mat1g <- mean(mat1g$p<0.05) %>% round(digits = 3)
 share_mat1b <- mean(mat1b$p<0.05) %>% round(digits = 3)
 share_mat3g <- mean(mat3g$p<0.05) %>% round(digits = 3)
 share_mat3b <- mean(mat3b$p<0.05) %>% round(digits = 3)
+
+# #Vote choice: good news
+# conds1g <- prep_graph(mat1g, args_m1g)
+# prop.table(table(conds1g$categ[conds1g$sign_95 & conds1g$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Vote choice: bad news
+# conds1b <- prep_graph(mat1b, args_m1b)
+# prop.table(table(conds1b$categ[conds1b$sign_95 & conds1b$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Turnout: good news
+# conds3g <- prep_graph(mat3g, args_m3g)
+# prop.table(table(conds3g$categ[conds3g$sign_95 & conds3g$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Turnout: bad news
+# conds3b <- prep_graph(mat3b, args_m3b)
+# prop.table(table(conds3b$categ[conds3b$sign_95 & conds3b$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
 ```
+
+# What specifications matter most? 
+
+The tables below show, for each row of specification choice C, the share of significant specifications when C = TRUE (sign_trues) and C = FALSE (sign_false) relative to the total share of unique *significant*  specifications.
+
+The last column of the last row shows the total share of unique specifications that are significant (p < 0.05).
+
+```{r}
+
+share_sign_per_spec <- function(mat, args){
+  # df <- as.data.frame(apply(args, 2, paste0), stringsAsFactors = FALSE)
+  df <- args
+  df$ate <- mat$ate
+  df$p <- mat$p
+  df$sign_95 <- (df$p < 0.05)
+  df <- df %>% select(-depvar, -news, -ate, -p)
+  
+  # adjust coding for cov because not TRUE or FALSE
+  df$cov <- (df$cov == "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i")
+
+  # percentage of significant specs occuring when choice = TRUE
+  sign_trues <- sapply(1:ncol(df), function(c) sum(df$sign_95[df[,c] == TRUE])/sum(df$sign_95))
+  # percentage of significant specs occuring when choice = FALSE
+  sign_falses <- sapply(1:ncol(df), function(c) sum(df$sign_95[df[,c] == FALSE])/sum(df$sign_95))
+  # share of total specifications where choice = TRUE
+  share_true <- c(0, apply(df[,-1], 2, function(x) mean(x == TRUE)))
+
+  # share_true["cov"] <- mean(df$cov)
+
+  # adjust coding for ctry exclusion choice
+  ctr <- c("ug1", "ug2", "bf", "brz", "mex", "ben", "none")
+  for(i in 1:7){
+    sign_trues[14+i] <- sum(df$sign_95[df[,1] == ctr[i]])/sum(df$sign_95) #nrow(df)
+    sign_falses[14+i] <- sum(df$sign_95[df[,1] != ctr[i]])/sum(df$sign_95) #nrow(df)
+    share_true[14+i] <- mean(df[,1] == ctr[i])
+  }
+  
+  t <- as.data.frame(rbind(sign_trues, sign_falses, share_true))
+  colnames(t) <- c(colnames(df), paste0("excl_", ctr))
+  t <- round(t, 2) %>% t()
+  t[c(1:13, 15:21, 14),]
+}
+
+#Vote choice: good news
+t1 <- share_sign_per_spec(mat1g, args_m1g)
+t1
+#Vote choice: bad news
+t2 <- share_sign_per_spec(mat1b, args_m1b)
+t2
+#Turnout: good news
+t3 <- share_sign_per_spec(mat3g, args_m3g)
+t3
+#Turnout: bad news
+t4 <- share_sign_per_spec(mat3b, args_m3b)
+t4
+```
+
+```{r, echo=FALSE}
+
+rnames <- c("Leave Out", "Burkina: recode M1", "Uganda 1: recode m10",
+            "Mexico: recode m10", "Recode missing P", "Cluster: Level of politician", 
+            "Weight studies equally", "Covariate adjusted", "Include Nij as covariate",
+            "Uganda 2: include only contested seats", "Uganda 2: Exclude LCV councilors",
+            "Uganda 2: Exclude redistricted councilors", 
+            "Uganda 2: Exclude party switches",
+            "Leave out: Uganda 1", "Leave out: Uganda 2", "Leave out: Burkina Faso",
+            "Leave out: Brazil", "Leave out: Mexico", "Leave out: Benin", "Leave out: Include all",
+            "Share of significant specifications")
+
+format_tab <- function(tab, title, label, file){
+  rownames(tab) <- rnames
+  colnames(tab) <- c("TRUE" , "FALSE", "Share of TRUE (among all specifications)")
+  print(xtable(tab[-1,], caption = title, label = label), header = FALSE,
+        caption.placement = "top", file = file)
+}
+
+format_tab(t1, "Share of significant specifications by decision for vote choice (good news)",
+            "tab:spec_m1g", "spec_m1g.tex")
+
+format_tab(t2, "Share of significant specifications by decision for vote choice (bad news)",
+            "tab:spec_m1b", "spec_m1b.tex")
+
+format_tab(t3, "Share of significant specifications by decision for voter turnout (good news)",
+            "tab:spec_m3g", "spec_m3g.tex")
+
+format_tab(t4, "Share of significant specifications by decision for voter turnout (bad news)",
+            "tab:spec_m3b", "spec_m3b.tex")
+
+
+```
+
+
 ```{r, echo=FALSE}
 cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
 atem1g <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE,

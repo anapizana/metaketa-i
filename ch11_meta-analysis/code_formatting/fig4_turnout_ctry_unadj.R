@@ -29,8 +29,8 @@ turn_ctry_tab_b <- turn_ctry_tab[turn_ctry_tab$model == "Bad news",]
 turn_ctry_tab_b <- turn_ctry_tab_b[rev(1:nrow(turn_ctry_tab_b)),]
 
 #RI p-values
-tab_g_p <- unlist(lapply(list(t3c1, t3c2, t3c3, t3c4, t3c5, t3c6, t3c7), function(i) i$p)) %>% rev %>% round(., 2) %>% paste0("p = ", .)
-tab_b_p <- unlist(lapply(list(t4c1, t4c2, t4c3, t4c4, t4c5, t4c6, t4c7), function(i) i$p)) %>% rev %>% round(., 2) %>% paste0("p = ", .)
+tab_g_p <- unlist(lapply(list(t3c1, t3c2, t3c3, t3c4, t3c5, t3c6, t3c7), function(i) i$p)) %>% rev %>% round(., 2) %>% parse(text = paste0("italic(p) == ", .))
+tab_b_p <- unlist(lapply(list(t4c1, t4c2, t4c3, t4c4, t4c5, t4c6, t4c7), function(i) i$p)) %>% rev %>% round(., 2) %>% parse(text = paste0("italic(p) == ", .))
 
 fig11.4 <- function(){
 mar.default <- c(5,4,4,2) + 0.1

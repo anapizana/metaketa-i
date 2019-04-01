@@ -18,6 +18,7 @@ output: rmarkdown::github_document
 ```{r setup, include=F}
 
 rm(list = ls())
+set.seed(72779775)
 
 # packages
 pks <- c("readstata13","reshape","dotwhisker", "MASS","plyr","dplyr","foreign",
@@ -614,7 +615,7 @@ m6_m24c1_g <- results(dat = madat_iter, sims = n_iter,
                       ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_m24_all_g_unadj.Rda")  ## good news
 
 m6_m24c1_b <- results(dat = madat_iter, sims = n_iter, 
-                      depvar = "m6", interactvar = "m24", good = TRUE,
+                      depvar = "m6", interactvar = "m24", good = FALSE,
                       ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_m24_all_b_unadj.Rda")  ## bad news
 ```
 

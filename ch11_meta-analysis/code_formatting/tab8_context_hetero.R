@@ -23,7 +23,7 @@ print_t11.8 <- function(type = "latex"){
             dep.var.labels.include = FALSE,
             dep.var.caption = "Incumbent vote choice",
             column.labels = rep(c("Good news", "Bad news"), 3),
-            add.lines=list(c("Control means", m1_m11c1_g$mean.control, m1_m11c1_b$mean.control,
+            add.lines=list(c("Control mean", m1_m11c1_g$mean.control, m1_m11c1_b$mean.control,
                              m1_m26c1_b$mean.control, m1_m26c1_g$mean.control,
                              m1_m27c1_g$mean.control, m1_m27c1_b$mean.control),
                            c("RI $p$-values", ps),
