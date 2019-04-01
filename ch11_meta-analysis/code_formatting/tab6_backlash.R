@@ -23,7 +23,7 @@ print_t11.6 <- function(type = "latex"){
             type = type)
 }
 
-t11.6 <- capture.output(print_t11.6)
+t11.6 <- capture.output(print_t11.6())
 
 #output to replication and ms folder
 fileConn <- file("tables/tab_11.6_backlash.tex")
