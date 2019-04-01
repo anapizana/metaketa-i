@@ -18,6 +18,7 @@ output: rmarkdown::github_document
 ```{r setup, include=F}
 
 rm(list = ls())
+set.seed(72779775)
 
 # packages
 pks <- c("readstata13","reshape","dotwhisker", "MASS","plyr","dplyr","foreign",
