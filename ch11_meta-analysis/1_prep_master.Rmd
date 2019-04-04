@@ -38,6 +38,7 @@ opts_knit$set(warning = FALSE, message = FALSE)
 # load the survey data
   # ben <- read.dta13("../data/raw/ben/data_with_randblocks/benin_survey.dta")
   ben <- read.dta13("../data/raw/ben/data_with_randblocks/benin_survey_v2_201711213.dta")
+  if(!"Tout à fait probable" %in% unique(ben$m27)) stop("Benin data is not being imported correctly. Please make sure to read this script with UTF-8 encoding. This means that special characters such as '`' are being read correctly. See https://support.rstudio.com/hc/en-us/articles/200532197-Character-Encoding for more details.")
 
 ## uganda 1
 # load the survey data
