@@ -1,0 +1,560 @@
+---
+title: "Online Appendix"
+author: "team"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_crop: yes
+    toc: true # table of content true
+    toc_depth: 3
+    keep_tex: yes
+    number_sections: yes
+  word_document: default
+header-includes:
+- \usepackage{caption,tikz}
+- \captionsetup{width=5in}
+- \usepackage{graphicx}
+abstract: ""
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=F}
+
+rm(list = ls())
+
+# packages
+
+pks <- c("readstata13","reshape","dotwhisker", "MASS","plyr","dplyr","foreign",
+         "tidyverse","lfe","stargazer","clubSandwich", "randomizr",
+         "haven","rstudioapi", "stringr", "ri", "car", "xtable", "xlsx", "rmarkdown", "dplyr", 
+         "iterators", "parallel")
+
+invisible(lapply(pks, function(x) if (!require(x, character.only=T)){install.packages(x, repos = "http://cran.us.r-project.org");library(x, character.only = T)}))
+
+# knitr options
+require(knitr)
+opts_knit$set(warning = FALSE, message = FALSE)
+options(knitr.duplicate.label = 'allow')
+options(xtable.comment = FALSE)
+
+# create output folders
+if(!"figures"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "figures"))
+if(!"tables"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "tables"))
+```
+
+```{r, include=FALSE}
+# SET REPLICATION OPTIONS
+  # RI p-values could be generated from scratch, "generate", "load" from file, or "ignore"
+  ri_action <- "load"
+  #number of RI permutations; 10 for trial runs; >2000 for real runs (slow)
+  n_iter <- 2000
+  # load existing permutation matrices for the RITE analysis
+  load_iter_matrix <- TRUE
+  # run bayesian analysis (requires Rstan installation)
+  run_bayes <- FALSE
+  # export copy of results to book folder
+  export_to_book <- FALSE
+  book_dir <- "../../11 Book/4 Manuscript drafts/201804 For Copyediting/files"
+  # Code m1 = 0 for cases with m1 = NA and m3 = 0
+  full_m1 <- TRUE
+```
+
+```{r, include=F}
+# load functions
+source("0a_functions_main.R")
+if(run_bayes) source("0b_functions_bayes.R")
+```
+
+```{r dataprep, echo = F, warning=F, message=F}
+
+load("data/temp/madat.Rda")
+load("data/temp/madat_iter.Rda")
+
+# replaces N_good measure with alternative meaure of good news for Uganda1
+# madat_iter$N_good[madat_iter$ctry=="ug1"] <- 1*(madat_iter$N_alt[madat_iter$ctry=="ug1"]>0)
+```
+
+# Chapter 11
+
+## Shiny App
+
+## Summary statistics for the sample
+
+```{r, echo=FALSE, results="asis"}
+
+  sum_tab <- madat %>% 
+  select(ctry, treat, N, N_good, m1, m3, m5, m6, m8, m14, m15, m17, m18, m19, m20, m21, m22, m24, m26, m27) %>%
+  # group_by(ctry) %>%
+  # mutate_at(c("N","m5", "m6", "m8","m14", "m17", "m18", "m20", "m21", "m22", "m24", "m26", "m27"),
+              # function(x) x - mean(x, na.rm = T)) %>%
+  # ungroup() %>%
+  as.data.frame() %>%
+  reshape::rename(c(treat = "Treatment",
+                    N = "Nij",
+                    m1 = "Incumbent vote choice",
+                    m3 = "Voter turnout",
+                    m5 = "Effort", 
+                    m6 = "Dishonesty", 
+                    m8 = "Backlash", 
+                    m14 = "Age", 
+                    m15 = "Co-ethnicity", 
+                    m17 = "Education", 
+                    m18 = "Wealth", 
+                    m19 = "Co-Partisanship", 
+                    m20 = "Voted in past election", 
+                    m21 = "Voted incumbent past election", 
+                    m22 = "Clientelism", 
+                    m23 = "Salience of information", 
+                    m24 = "Credibility of information", 
+                    m26 = "Secret ballot", 
+                    m27 = "Free and fair elections"))
+
+sum_tab_g <- sum_tab %>% subset(N_good == 1) %>% select(-N_good, -ctry) %>% 
+  format_output(., title = "Descriptive statistics for sample of good news", omit.summary.stat = c("p25", "p75")) %>%
+  {
+  writeLines(., file("tables/tab_A11.1_sumstats_good.tex"))
+  if(export_to_book) writeLines(., file(paste0(book_dir, "/tab_A11.1_sumstats_good.tex")))
+  }
+
+close(file("tables/tab_A11.1_sumstats_good.tex"))
+if(export_to_book) close(file(paste0(book_dir, "/tab_A11.1_sumstats_good.tex")))
+
+sum_tab_b <- sum_tab %>% subset(N_good == 0) %>% select(-N_good, -ctry) %>% 
+  format_output(.,title = "Descriptive statistics for sample of bad news", omit.summary.stat = c("p25", "p75")) %>%
+  {
+  writeLines(., file("tables/tab_A11.1_sumstats_bad.tex"))
+  if(export_to_book) writeLines(., file(paste0(book_dir, "/tab_A11.1_sumstats_bad.tex")))
+  }
+  
+close(file("tables/tab_A11.1_sumstats_bad.tex"))
+if(export_to_book) close(file(paste0(book_dir, "/tab_A11.1_sumstats_bad.tex")))
+
+cat(readLines('tables/tab_A11.1_sumstats_good.tex'), sep = '\n')
+cat(readLines('tables/tab_A11.1_sumstats_bad.tex'), sep = '\n')
+```
+
+\clearpage
+
+## Balance tests
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+madat$inv_wt <- NA
+madat$inv_wt[madat$ctry == "brz"] <- madat$inv_wts[madat$ctry == "brz"]
+madat$inv_wt[madat$ctry == "ug2"] <- madat$inv_wts2[madat$ctry == "ug2"]
+madat$inv_wt[!madat$ctry %in% c("brz", "ug2") ] <- 1/.5 # assignment probability = .5 for all countries other than brazil and uganda 2
+
+```
+
+### Balance: Meta-analysis
+```{r, echo = FALSE, warning=FALSE, message=FALSE, results = 'asis'}
+if(export_to_book){
+  filename <- paste0(book_dir, "/tab_A_balance_meta.tex")
+  balance_tab <- format_balance(make_balance_tab(madat))
+  writeLines(c(balance_tab[1], "\\caption{Balance of covariates}", balance_tab[2], 
+               "\\footnotesize", balance_tab[3:length(balance_tab)]), file(filename)); close(file(filename))
+}
+
+filename <- "tables/tab_A_balance_meta.tex"
+balance_tab <- format_balance(make_balance_tab(madat))
+writeLines(c(balance_tab[1], "\\caption{Balance of covariates}", balance_tab[2], 
+               "\\footnotesize", balance_tab[3:length(balance_tab)]), file(filename)); close(file(filename))
+cat(readLines(filename), sep = "\n")
+```
+
+\clearpage
+
+## Attrition
+
+### Meta Analysis
+
+```{r, echo=FALSE, results= 'asis'}
+get_attrition <- function(df = madat, y = "m1", country = NULL){
+  meta <- TRUE
+  if(!is.null(country)){df <- df[df$ctry == country,]; meta <- FALSE}
+  df <- reweight(df, meta = meta)
+  df$missing <- is.na(df[,y])
+  
+  mod <- felm(missing ~ treat|fe|0|cl, data = df, weights = df$wt)
+
+  covs <- df %>% select(P, N_good, m13, m14, m15, m17, m18,
+         m19, m20, m21, m22, m23, m24) %>% names()
+  
+  form <- paste0("missing ~ ",
+               paste(paste0(covs, "*treat"), collapse = " + "),
+               "|fe|0|cl") %>% as.formula()
+  
+  mod2 <- felm(form, data = df, weights = df$wt)
+  f <- linearHypothesis(mod2, c("P:treat = 0", paste0("treat:", covs[-1], " = 0")))
+  Fstat <- f$Chisq[2] %>% round(.,2)
+  Pr_F <- f$`Pr(>Chisq)`[2] %>% round(.,2)
+  table <- data.frame(est = mod$coefficients[1,1],
+                    se = mod$se,
+                    p = mod$pval)
+  rownames(table) <- "Treatment"
+  return(list(table = table,
+              Fstat = Fstat,
+              Pr_F = Pr_F))
+}
+
+r1 <- get_attrition()
+missing_m1 <- r1$table %>% round(., 2)
+missing_m1$se <- paste0("(", missing_m1$se, ")")
+
+r3 <- get_attrition(y = "m3")
+missing_m3 <- r3$table %>% round(., 2)
+missing_m3$se <- paste0("(", missing_m3$se, ")")
+
+missing <- cbind(missing_m1, missing_m3)
+missing <- missing %>% xtable(caption = ) %>% capture.output()
+# rownames(tab) <- c("All", "Benin", "Burkina Faso","Brazil","Mexico","Uganda 1", "Uganda 2")
+missing[4] <- paste0(missing[6], "& \\multicolumn{3}{c}{Vote Choice}&\\multicolumn{3}{c}{Voter Turnout} \\\\")
+missing[5] <- " & Estimate & Std. Error & $p$-value & Estimate & Std. Error & $p$-value \\\\ "
+missing[11] <- missing[9]
+missing[12] <- "\\begin{flushleft}\\textit{Note:} Table shows the effect size of treatment on data missingness in incumbent vote choice and voter turnout across the entire sample. Pr(F) shows the probability of rejecting the null that none of the covariates is differentally determining attrition across treatment and control conditions. All regressions include block fixed effects, standard errors clustered at the level of assingment and inverse propensity weights, and all countries are weighted equally.$^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \\end{flushleft}"
+missing[13] <- missing[10]
+missing[9] <- paste0("F-stat & \\multicolumn{3}{c}{", r1$Fstat , "}&\\multicolumn{3}{c}{", r3$Fstat, "} \\\\")
+missing[10] <- paste0("Pr(F) & \\multicolumn{3}{c}{", r1$Pr_F , "}&\\multicolumn{3}{c}{", r3$Pr_F, "} \\\\ \\hline \\hline")
+
+if(export_to_book){
+  filename <- paste0(book_dir, "/tab_A_attrition_meta.tex")
+  writeLines(c("\\begin{table}[!htb]", "\\caption{Differential attrition}", missing[2:length(missing)]), file(filename))
+  close(file(filename))
+}
+
+writeLines(c("\\begin{table}[h!]", "\\caption{Differential attrition}", missing[2:length(missing)]), file("tables/tab_A_attrition_meta.tex")); close(file("tables/tab_A_attrition_meta.tex"))
+cat(readLines("tables/tab_A_attrition_meta.tex"), sep = "\n")
+```
+
+## Pre-specified analysis: unweighted + adjusted
+
+```{r, echo=FALSE}
+  cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
+
+  # Good news ----
+  ## Pool
+  t1c1 <-  estimates(good = TRUE, depvar = "m1", exclude_councilors = FALSE)
+  t1ncovc1 <- estimates(with_N = TRUE, good = TRUE, depvar = "m1", 
+                        cov = cov, exclude_councilors =FALSE)
+  t1uncovc1 <- estimates(with_N = TRUE, weights = FALSE, good = TRUE, depvar = "m1", 
+                         cov = cov, exclude_councilors =FALSE)
+
+  # Bad news ----
+  ## Pool
+  t2c1 <-  estimates(good = FALSE, depvar = "m1", exclude_councilors =FALSE)
+  t2ncovc1 <- estimates(with_N = TRUE, good = FALSE, depvar = "m1", 
+                        cov = cov, exclude_councilors =FALSE)
+  t2uncovc1 <- estimates(with_N = TRUE, weights = FALSE, good = FALSE, depvar = "m1", 
+                         cov = cov, exclude_councilors =FALSE)
+
+```
+
+```{r, echo=F, cache=T}
+  source("code_formatting/fig1_main_incumbent.R")
+  
+  ggsave("figures/incumbent_ma_details.png", 
+         plot = last_plot(), 
+         device = NULL, path = NULL,
+         scale = 1, width = 7.5, height = 4,
+         dpi = 300, limitsize = TRUE)
+  
+  if(export_to_book){
+  ggsave(paste0(book_dir, "/incumbent_ma_details.png"), 
+         plot = last_plot(), 
+         device = NULL, path = NULL,
+         scale = 1, width = 7.5, height = 4,
+         dpi = 300, limitsize = TRUE)
+  }
+```
+![](figures/incumbent_ma_details.png)
+
+\clearpage
+
+```{r, echo=F, cache=T}
+  # Good news ----
+  ## Pool (Uganda 2 chairs and councilors)
+  t3c1 <- estimates(good = TRUE, depvar = "m3", exclude_councilors =FALSE)
+  t3ncovc1 <- estimates(with_N = TRUE, good = TRUE, depvar = "m3", cov = cov, exclude_councilors =FALSE)
+  t3uncovc1 <- estimates(with_N = TRUE, good = TRUE, depvar = "m3", cov = cov, weights = FALSE,
+                         exclude_councilors =FALSE)
+  
+
+  # Bad news ----
+  t4c1 <-  estimates(good = FALSE, depvar = "m3", exclude_councilors =FALSE)
+  t4ncovc1 <- estimates(with_N = TRUE, good = FALSE, depvar = "m3", 
+                        cov = cov, exclude_councilors =FALSE)
+  t4uncovc1 <- estimates(with_N = TRUE, good = FALSE, depvar = "m3", 
+                         cov = cov, weights = FALSE, exclude_councilors =FALSE)
+  
+```
+
+```{r, echo=F, cache=T}
+  source("code_formatting/fig2_main_turnout.R")
+
+  ggsave("figures/turnout_ma_details.png", 
+         plot = last_plot(), 
+         device = NULL, path = NULL,
+         scale = 1, width = 7.5, height = 4,
+         dpi = 300, limitsize = TRUE)
+
+  if(export_to_book){
+  ggsave(paste0(book_dir, "/turnout_ma_details.png"), 
+         plot = last_plot(), 
+         device = NULL, path = NULL,
+         scale = 1, width = 7.5, height = 4,
+         dpi = 300, limitsize = TRUE)
+  }
+```
+
+![](figures/turnout_ma_details.png)
+\clearpage
+
+## Country-specific analyses
+
+```{r country-spec-m1, include=F, echo=F, cache=T}
+
+cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
+t1ncovc2 <- estimates(dat = madat, cov = cov, good = TRUE, 
+                    with_N = TRUE, weights = TRUE, depvar = "m1", exclude_councilors = FALSE)
+
+t1c1 <-  estimates(dat = madat, with_N = TRUE, good = TRUE, 
+                   cov = cov, depvar = "m1", exclude_councilors = FALSE)
+t1c2 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = TRUE, country = "ben")
+t1c3 <- estimates(dat = madat,
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = TRUE,  good = TRUE, country = "brz")
+t1c4 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = TRUE, country = "bf")
+t1c5 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = TRUE, country = "mex")
+t1c6 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = TRUE, country = "ug1")
+t1c7 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = TRUE,  good = TRUE, country = "ug2",
+                  exclude_councilors =FALSE)
+
+t2c1 <-  estimates(dat = madat, 
+                   cov = cov, with_N = TRUE, good = FALSE, depvar = "m1", exclude_councilors =FALSE)
+t2c2 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = FALSE, country = "ben")
+t2c3 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = TRUE,  good = FALSE, country = "brz")
+t2c4 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = FALSE, country = "bf")
+t2c5 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = FALSE, country = "mex")
+t2c6 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = FALSE, good = FALSE, country = "ug1")
+t2c7 <- estimates(dat = madat, 
+                  cov = cov, with_N = TRUE, depvar = "m1", weights = TRUE,  good = FALSE, country = "ug2", 
+                  exclude_councilors =FALSE)
+ 
+```
+```{r country-spec-m3, include=F, echo=F, cache=T}
+
+t3c1 <- estimates(dat = madat, with_N = TRUE, good = TRUE, depvar = "m3", cov = cov, exclude_councilors =FALSE)
+t3c2 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = TRUE, country = "ben")
+t3c3 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = TRUE,  good = TRUE, country = "brz")
+t3c4 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = TRUE, country = "bf")
+
+t3c5 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = TRUE, country = "mex")
+t3c6 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = TRUE, country = "ug1")
+t3c7 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = TRUE,  good = TRUE, country = "ug2", exclude_councilors =FALSE)
+
+t4c1 <-  estimates(dat = madat, 
+                   with_N = TRUE, good = FALSE, depvar = "m3", cov = cov, exclude_councilors =FALSE)
+t4c2 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = FALSE, country = "ben")
+t4c3 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = TRUE,  good = FALSE, country = "brz")
+t4c4 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = FALSE, country = "bf")
+t4c5 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = FALSE, country = "mex")
+t4c6 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = FALSE, good = FALSE, country = "ug1")
+t4c7 <- estimates(dat = madat, 
+                  with_N = TRUE, depvar = "m3", cov = cov, weights = TRUE,  good = FALSE, country = "ug2", exclude_councilors =FALSE)
+  
+```
+
+```{r, echo=FALSE, results="asis"}
+col_labels <- c("ALL", "BEN", "BRZ", "BF", "MEX", "UG1", "UG2")
+m1_g <- format_output(t1c1, t1c2, t1c3, t1c4, 
+                      t1c5, t1c6, t1c7, column.labels = col_labels,
+                      title = "Covariate-adjusted estimates of treatment effect on vote choice (good news) for each study", dep.var.caption = "", notes =  "Reported estimates refer to Equation 11.1.",
+                      dep.var.labels.include = FALSE, covariate.labels = "Treatment")
+m1_b <- format_output(t2c1, t2c2, t2c3, t2c4, t2c5, t2c6, t2c7, column.labels = col_labels,
+                      notes = "Reported estimates refer to Equation 11.2.",
+                      title = "Covariate-adjusted estimates of treatment effect on vote choice (bad news) for each study", dep.var.caption = "",
+                      dep.var.labels.include = FALSE, covariate.labels = "Treatment")
+m3_g <- format_output(t3c1, t3c2, t3c3, t3c4, t3c5, t3c6, t3c7,
+                      notes =  "Reported estimates refer to Equation 11.1.",
+                      column.labels = col_labels,
+                      title = "Covariate-adjusted estimates of treatment effect on turnout (good news) for each study", dep.var.caption = "",
+                      dep.var.labels.include = FALSE, covariate.labels = "Treatment")
+m3_b <- format_output(t4c1, t4c2, t4c3, t4c4, t4c5, t4c6, t4c7, 
+                      notes = "Reported estimates refer to Equation 11.2.", column.labels = col_labels,
+                      title = "Covariate-adjusted estimates of treatment effect on turnout (bad news) for each study", dep.var.caption = "",
+                      dep.var.labels.include = FALSE, covariate.labels = "Treatment")
+
+if(export_to_book){
+  writeLines(m1_g[c(1:12,20:27)], file(paste0(book_dir, "/tab_A_m1_studies_cov_good.tex"))); closeAllConnections()
+  writeLines(m1_b[c(1:12,20:27)], file(paste0(book_dir, "/tab_A_m1_studies_cov_bad.tex"))); closeAllConnections()
+  writeLines(m3_g[c(1:12,20:27)], file(paste0(book_dir, "/tab_A_m3_studies_cov_good.tex"))); closeAllConnections()
+  writeLines(m3_b[c(1:12,20:27)], file(paste0(book_dir, "/tab_A_m3_studies_cov_bad.tex"))); closeAllConnections()
+}
+
+writeLines(m1_g[c(1:12,20:27)], file("tables/tab_A_m1_studies_cov_good.tex")); close(file("tables/tab_A_m1_studies_cov_good.tex"))
+writeLines(m1_b[c(1:12,20:27)], file("tables/tab_A_m1_studies_cov_bad.tex")); close(file("tables/tab_A_m1_studies_cov_bad.tex"))
+writeLines(m3_g[c(1:12,20:27)], file("tables/tab_A_m3_studies_cov_good.tex")); close(file("tables/tab_A_m3_studies_cov_good.tex"))
+writeLines(m3_b[c(1:12,20:27)], file("tables/tab_A_m3_studies_cov_bad.tex")); close(file("tables/tab_A_m3_studies_cov_bad.tex"))
+
+cat(readLines("tables/tab_A_m1_studies_cov_good.tex"), sep = "\n")
+cat(readLines("tables/tab_A_m1_studies_cov_bad.tex"), sep = "\n")
+cat(readLines("tables/tab_A_m3_studies_cov_good.tex"), sep = "\n")
+cat(readLines("tables/tab_A_m3_studies_cov_bad.tex"), sep = "\n")
+```
+
+## Heterogeneous effects analyses
+
+```{r, echo=F, results='asis', warning=FALSE}
+
+  t1ncovc2 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", exclude_councilors =FALSE)
+  t1ncovc3 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ben")
+  t1ncovc4 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "brz")
+  t1ncovc5 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "bf")
+  t1ncovc6 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "mex")
+  t1ncovc7 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ug1")
+  t1ncovc8 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2")
+  t1ncovc9 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2", exclude_councilors =FALSE)
+
+  source("code_formatting/tab11_incumbent_interaction_good.R")
+  gentab11()
+  
+  t11.11 <- capture.output(gentab11())
+  if(export_to_book){
+  #output to replication and ms folder
+  fileConn <- file(paste0(book_dir, "/tab_11.11_interaction_incumbent_good.tex"))
+  
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.11[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.11[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1a}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+  }
+  
+  fileConn <- file("tables/tab_11.11_interaction_incumbent_good.tex")
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.11[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.11[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1a}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+
+```
+\clearpage
+
+```{r, echo=F, results='asis', warning=FALSE}
+
+  t2ncovc2 <- estimates(cov = cov, good = FALSE, with_N = TRUE, depvar = "m1", exclude_councilors =FALSE)
+  t2ncovc3 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ben")
+  t2ncovc4 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "brz")
+  t2ncovc5 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "bf")
+  t2ncovc6 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "mex")
+  t2ncovc7 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ug1")
+  t2ncovc8 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2")
+  t2ncovc9 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2", exclude_councilors =FALSE)
+
+  source("code_formatting/tab12_incumbent_interaction_bad.R")
+  gentab12()
+  t11.12 <- capture.output(gentab12())
+
+  if(export_to_book){
+  #output to replication and ms folder
+  fileConn <- file(paste0(book_dir, "/tab_11.12_interaction_incumbent_bad.tex"))
+  
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.12[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.12[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1b}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+  }
+  
+  fileConn <- file("tables/tab_11.12_interaction_incumbent_bad.tex")
+  
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.12[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.12[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1b}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+```
+\clearpage
+
+## Leave one study out analysis
+
+```{r, echo=FALSE, results="asis"}
+
+leaveout <- lapply(unique(madat$ctry), function(c){
+  madat_iter_c <- madat_iter %>% subset(ctry != c)
+  results(dat = madat_iter_c, ri_p = ri_action, sims = n_iter, cov = cov, with_N = TRUE,
+          file_rite_obj = paste0("data/temp/ri_m1against_no", c, "_b_cov.Rda"),
+          good = FALSE, depvar = "m1_against", exclude_councilors = FALSE)
+            })
+
+
+# Gen Table 11.1C BAD NEWS breakdown (appendix)
+
+# Round RI p-values 
+ps <- sapply(leaveout, function(l) round(l$p, 3))
+mean.control <- unlist(lapply(leaveout, function(l) l$mean.control))
+estimates <-  lapply(leaveout, function(l) l$estimates)
+  
+t11.1_bad <- capture.output(stargazer(estimates,
+                                  title = "Effect of bad news on vote choice and missing turnout data",
+                                  label = "main_results_explain_m3bad",
+                                  df = FALSE, column.sep.width = "1pt",
+                                  omit = c("Constant", "m"), 
+                                  omit.stat = c("adj.rsq", "ser"),
+                                  header = F, table.placement = "h!",
+                                  dep.var.labels="Vote against incumbent, bad news",
+                                  column.labels = paste("w/o", unique(madat$ctry)),
+                                  covariate.labels = c("Treatment", "N$_{ij}$","Treatment * N$_{ij}$"),
+                                  add.lines=list(c("Control mean", mean.control),
+                                                 c("RI $p$-value", ps),
+                                                 c("Covariates", rep(c("Yes"),6))),
+                                  star.cutoffs = c(0.05, 0.01, 0.001)
+                                  # omit.table.layout = "n")
+                            ))
+
+#output to replication and ms folder
+# fileConn <- file("../tables/tab_A11.1c_main_explain_m3bad_leaveout.tex")
+if(export_to_book){
+  fileConn <- file(paste0(book_dir, "/tab_A11.1c_main_explain_m3bad_leaveout.tex"))
+  writeLines(t11.1_bad, fileConn)
+  close(fileConn)
+}
+
+fileConn <- file("tables/tab_A11.1c_main_explain_m3bad_leaveout.tex")
+writeLines(t11.1_bad, fileConn)
+close(fileConn)
+  
+cat(readLines('tables/tab_A11.1c_main_explain_m3bad_leaveout.tex'), sep = '\n')
+```
+
+
