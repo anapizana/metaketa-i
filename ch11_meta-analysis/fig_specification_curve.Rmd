@@ -24,7 +24,7 @@ Possible arguments to vary over:
 * BF: recoding the m3=0/m1=1 as m1=0 cases y/n
 
 ```{r, echo=FALSE}
-standalone <- FALSE #whether running this file independently or rendering in main replication file
+standalone <- TRUE #whether running this file independently or rendering in main replication file
 ```
 
 
@@ -34,9 +34,8 @@ library(xtable)
 
 source("0a_functions_main.R")
 
-export_to_book <- TRUE
-book_dir <- "11 Book/4 Manuscript drafts/201804 For Copyediting/files"
 load_specification_matrices <- TRUE #if FALSE will generate matrices for specification curve from scratch (time intensive)
+export_spec_pdf <- FALSE #if FALSE will not export specification curve figures to PDF (time-consuming)
 ```
 
 # Function to generate all specification results
@@ -454,16 +453,16 @@ format_tab <- function(tab, title, label, file){
 }
 
 format_tab(t1, "Share of significant specifications by decision for vote choice (good news)",
-            "tab:spec_m1g", "spec_m1g.tex")
+            "tab:spec_m1g", "tables/spec_m1g.tex")
 
 format_tab(t2, "Share of significant specifications by decision for vote choice (bad news)",
-            "tab:spec_m1b", "spec_m1b.tex")
+            "tab:spec_m1b", "tables/spec_m1b.tex")
 
 format_tab(t3, "Share of significant specifications by decision for voter turnout (good news)",
-            "tab:spec_m3g", "spec_m3g.tex")
+            "tab:spec_m3g", "tables/spec_m3g.tex")
 
 format_tab(t4, "Share of significant specifications by decision for voter turnout (bad news)",
-            "tab:spec_m3b", "spec_m3b.tex")
+            "tab:spec_m3b", "tables/spec_m3b.tex")
 
 
 ```
@@ -485,51 +484,9 @@ atem3b <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE,
 
 Percentage of specifications where $p$ < 0.05: `r toString(share_mat1g)`
 
-```{r, echo=FALSE}
-p1g <- plot_spec_ate(mat1g, args_m1g,
-                     title = "Treatment effect of good news on vote for incumbent (meta-analysis)")
-
-pdf("figures/fig_spec_curve_m1_good.pdf", height = 7, width = 12)
-p1g
-dev.off()
-
-# g <- p1g %>% add_brackets(brackets)
-# 
-# pdf("figures/test.pdf", height = 7, width = 12)
-# 
-# grid.arrange(g)
-# 
-# dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m1_good.pdf"), height = 7, width = 12)
-  p1g
-  dev.off()
-}
-
-p1g
-```
-
 # Vote for incumbent, bad news
 
 Percentage of specifications where $p$ < 0.05: `r toString(share_mat1b)`
-
-```{r, echo=FALSE}
-p1b <- plot_spec_ate(mat1b, args_m1b,
-                     title = "Treatment effect of bad news on vote for incumbent (meta-analysis)")
-
-pdf("figures/fig_spec_curve_m1_bad.pdf", height = 7, width = 12)
-p1b
-dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m1_bad.pdf"), height = 7, width = 12)
-  p1b
-  dev.off()
-}
-
-p1b
-```
 
 # Vote for incumbent, good and bad news
 
@@ -554,12 +511,8 @@ p1b <- plot_spec_ate(mat1b, args_m1b, title = "") +
   geom_vline(xintercept=atem1b, linetype="longdash")+
   coord_cartesian(xlim = c(min(c(mat1g$ate, mat1b$ate)), max(c(mat1g$ate, mat1b$ate)))) 
 
-pdf("figures/fig_spec_curve_m1.pdf")
-grid.arrange(p1g, p1b, nrow = 2, widths = 8, heights = c(17, 16))
-dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m1.pdf"))
+if(export_spec_pdf){
+  pdf("figures/fig_spec_curve_m1.pdf")
   grid.arrange(p1g, p1b, nrow = 2, widths = 8, heights = c(17, 16))
   dev.off()
 }
@@ -569,39 +522,9 @@ if(export_to_book){
 
 Percentage of specifications where $p$ < 0.05: `r toString(share_mat3g)`
 
-```{r, echo=FALSE}
-pdf("figures/fig_spec_curve_m3_good.pdf", height = 7, width = 12)
-plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
-dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m3_good.pdf"), height = 7, width = 12)
-  plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
-dev.off()
-}
-
-  plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
-
-```
-
 # Voter turnout, bad news
 
 Percentage of specifications where $p$ < 0.05: `r toString(share_mat3b)`
-
-```{r, echo=FALSE}
-pdf("figures/fig_spec_curve_m3_bad.pdf", height = 7, width = 12)
-plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
-dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m3_bad.pdf"), height = 7, width = 12)
-  plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
-dev.off()
-}
-
-  plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
-
-```
 
 #Voter Turnout, good and bad news
 
@@ -625,12 +548,8 @@ p3b <- plot_spec_ate(mat3b, args_m3b, title = "") +
   geom_vline(xintercept=atem3b, linetype="longdash") +
   coord_cartesian(xlim = c(min(c(mat3g$ate, mat3b$ate)), max(c(mat3g$ate, mat3b$ate)))) 
 
-pdf("figures/fig_spec_curve_m3.pdf")
-grid.arrange(p3g, p3b, nrow = 2, widths = 8, heights = c(17, 16))
-dev.off()
-
-if(export_to_book){
-  pdf(paste0(book_dir, "/fig_spec_curve_m3.pdf"))
+if(export_spec_pdf){
+  pdf("figures/fig_spec_curve_m3.pdf")
   grid.arrange(p3g, p3b, nrow = 2, widths = 8, heights = c(17, 16))
   dev.off()
 }

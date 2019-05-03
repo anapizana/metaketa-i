@@ -3,11 +3,11 @@ title: "Metaketa I - Chapter 11 - Replication"
 editor_options:
   chunk_output_type: console
 date: \today
-output: rmarkdown::github_document
-  # html_document:
-  #   df_print: paged
-  #   toc: yes
-  #   toc_depth: 3
+output: #rmarkdown::github_document
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: 3
   # pdf_document:
   #   keep_tex: yes
   #   number_sections: yes
@@ -38,7 +38,6 @@ options(knitr.duplicate.label = 'allow')
 if(!"figures"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "figures"))
 if(!"tables"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "tables"))
 
-export_to_book <- FALSE
 compile_pdf <- FALSE
 show_code <- TRUE
 ```
@@ -59,11 +58,13 @@ show_code <- TRUE
     
     * `load_iter_matrix`: if `FALSE`, generate `n_iter` columns of treatment assignment according to each study's assignment strategy. If `TRUE`, load existing assignment matrix with 2,000 iterations of treatment assignment.
     
-    * `ri_action`: treatment effects and *p*-values from randomization inference can be generated from scratch if set to `"generate"`, loaded from existing file if (`"load"`), or not returned (`"ignore"`) in results. Note that these estimations may take a few hours depending on the value of `n_iter`.
+    * `ri_action`: treatment effects and *p*-values from randomization inference can be generated from scratch if set to `"generate"`, loaded from existing file if (`"load"`), or not returned (`"ignore"`) in results. Note that these estimations may take a few hours depending on the value of `n_iter`. If you select `"load"` please make sure to unzip the following files after cloning or downloading: `ch11_meta-analysis/data/temp/ri_m1pool_all_g_unadj.zip` and `ch11_meta-analysis/data/temp/ri_m1pool_all_b_unadj.zip`.
     
     * `run_bayes`: if `TRUE`, will run Monte Carlo simulations. `run_bayes <- FALSE` will skip the Bayesian analysis.
     
     * `load_specification_matrices <- FALSE` will estimate, from scratch, treatment effects under all combinations of specification choices. Likewise, `load_mde_data <- FALSE` will re-run the diagnostic process for the minimal detectable effect analysis. Setting these options to `FALSE` will take several hours to run on an average machine.
+    
+    * `export_spec_pdf <- TRUE` will export specification curve figures to PDF. When compiling to html format, setting to `FALSE` saves time. 
     
     * `full_m1`: if `FALSE` turns off imputing `0`s for vote choice for cases with where voter turnout is 0 in the cleaned data.
 
@@ -74,7 +75,7 @@ show_code <- TRUE
 * The package `xlsx` requires a 64 bit Java install on PCs; for more detail see  https://java.com/en/download/win10.jsp.
 
 ```{r}
-  prep <- TRUE
+  prep <- FALSE
   n_iter <- 2000
   load_iter_matrix <- TRUE
   ri_action <- "load"
@@ -82,6 +83,7 @@ show_code <- TRUE
   load_specification_matrices <- TRUE
   load_mde_data <- TRUE
   full_m1 <- TRUE
+  export_spec_pdf <- FALSE
 ```
 
 \clearpage
@@ -92,7 +94,7 @@ if(prep){
   rmarkdown::render("1_prep_master.Rmd")
 }
 
-rm(list=setdiff(ls(), c("export_to_book", "book_dir", "load_iter_matrix", "run_bayes", "run_ri", "prep", "n_iter", "ri_action", "full_m1","show_code", "load_mde_data","compile_pdf", "load_specification_matrices")))
+rm(list=setdiff(ls(), c("load_iter_matrix", "run_bayes", "run_ri", "prep", "n_iter", "ri_action", "full_m1","show_code", "load_mde_data","compile_pdf", "load_specification_matrices")))
 
 # load functions
 source("0a_functions_main.R")
@@ -102,8 +104,9 @@ if(run_bayes) source("0b_functions_bayes.R")
 ```{r dataprep, echo = show_code, warning=F, message=F}
 
 if(prep){
-  madat <- pool_studies(add_vars= c("nij", "Q_alt", "N_alt",
-                                    "lc5.councillor.party.switch", "lc5.chair.party.switch", "lc5.councillor.redistricted2016"))
+  madat <- pool_studies(
+    add_vars= c("nij", "Q_alt", "N_alt", "lc5.councillor.party.switch", 
+                "lc5.chair.party.switch", "lc5.councillor.redistricted2016"))
   if(full_m1){
     madat$m1[is.na(madat$m1) & madat$m3==0] <- 0
     #m3==0 in Burkina Faso means unlikely to vote or definitely not voting.
@@ -193,12 +196,6 @@ if(load_iter_matrix){
   pdf("figures/fig_11.3_incumbent_ctry_unadj.pdf", height = 7, width = 12)
   fig11.3()
   dev.off()
-  
-  if(export_to_book){
-  pdf(paste0(book_dir, "/incumbent_ctry_unadj.pdf"), height = 7, width = 12)
-  fig11.3()
-  dev.off()
-  }
 ```
 
 ```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Meta-Analysis: Country-Specific Effects on Vote Choice. Estimated change in the proportion of voters who support an incumbent after receiving good news (left panel) or bad news (right panel) about the politician, compared to receiving no information. Weighted unadjusted estimates. Horizontal lines show 95\\% confidence intervals for the estimated change. Entries under each estimate show p-values calculated by randomization inference. In all cases, the differences are close to zero and statistically insignificant."), echo=FALSE}
@@ -278,19 +275,12 @@ fig11.3()
   pdf("figures/fig_11.4_turnout_ctry_unadj.pdf", height = 7, width = 12)
   fig11.4()
   dev.off()
-  
-  if(export_to_book){
-  pdf(paste0(book_dir, "/turnout_ctry_unadj.pdf"), height = 7, width = 12)
-  fig11.4()
-  dev.off()
-  }
-
 ```
 
 <!-- ![](figures/fig_11.4_turnout_ctry_unadj.pdf) -->
 
 ```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Meta-Analysis: Country-Specific Effects on Turnout. Estimated change in the proportion of voters who turn out to vote after receiving good news (left panel) or bad news (right panel) about the politician, compared to receiving no information. Weighted unadjusted estimates; substantive results are similar for covariate-adjusted country-specific analysis [see Online Appendix]. Horizontal lines show 95\\% confidence intervals for the estimated change. Entries under each estimate show p-values calculated by randomization inference."), echo=FALSE}
-fig11.3()
+fig11.4()
 ```
 
 \clearpage
@@ -407,16 +397,6 @@ t_m3_o <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action, file_rite_o
   bayes_result(my_data = good_m1, main = "Effects of Good News on Vote Choice")
   bayes_result(my_data = bad_m1,  main = "Effects of Bad News on Vote Choice")
   dev.off()
-  
-  if(export_to_book){
-  pdf(paste0(book_dir, "/Effects_on_Vote.pdf"), height = 7, width = 12)
-  mar.default <- c(5,4,4,2) + 0.1
-  par(mfrow = c(1,2),mar = mar.default + c(0, 2, 0, 0))
-  bayes_result(my_data = good_m1, main = "Effects of Good News on Vote Choice")
-  bayes_result(my_data = bad_m1,  main = "Effects of Bad News on Vote Choice")
-  dev.off()
-  }
-  
 ```
 
 <!-- # ```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Bayesian Meta-analysis: Vote Choice. The solid dots and lines show the estimates from the Bayesian model; the top row shows the overall meta-estimate of $\\mu$ and $\\tau$. The white dots show the original frequentist estimates: in many cases shrinkage can be observed, especially in cases that have effects that are more imprecisely estimated."), echo=FALSE} -->
@@ -441,24 +421,14 @@ t_m3_o <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action, file_rite_o
   bayes_result(my_data = good_m3, main = "Effects of Good News on Turnout")
   bayes_result(my_data = bad_m3,  main = "Effects of Bad News on Turnout")
   dev.off()
-
-  if(export_to_book){
-  pdf(paste0(book_dir, "/Meta_Bayes_Turnout.pdf"), height = 7, width = 12)
-  mar.default <- c(5,4,4,2) + 0.1
-  par(mfrow = c(1,2),mar = mar.default + c(0, 2, 0, 0))
-  bayes_result(my_data = good_m3, main = "Effects of Good News on Turnout")
-  bayes_result(my_data = bad_m3,  main = "Effects of Bad News on Turnout")
-  dev.off()
-  }
-  
 ```
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Bayesian Meta-analysis: Turnout. The solid dots and lines show the estimates from the Bayesian model; the top row shows the overall meta-estimate of $\\mu$ and $\\tau$. The white dots show the original frequentist estimates: in many cases shrinkage can be observed, especially in cases that have effects that are more imprecisely estimated."), echo=FALSE}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Bayesian Meta-analysis: Turnout. The solid dots and lines show the estimates from the Bayesian model; the top row shows the overall meta-estimate of $\\mu$ and $\\tau$. The white dots show the original frequentist estimates: in many cases shrinkage can be observed, especially in cases that have effects that are more imprecisely estimated."), echo=FALSE, eval=run_bayes}
   bayes_result(my_data = good_m3, main = "Effects of Good News on Turnout")
   bayes_result(my_data = bad_m3,  main = "Effects of Bad News on Turnout")
 ```
 
-```{r, include=F, eval=TRUE, cache=TRUE}
+```{r, include=F, eval=run_bayes, cache=TRUE}
   rm(bayes_result, my_data)
   gc()
 ```
@@ -991,12 +961,4 @@ print_t11.13("html")
 print_t11.15("html")
 ```
 
-```{r, include=F}
-if(export_to_book){
-  all.tables <- list.files("tables")
-  lapply(all.tables, function(x){
-    temp <- readLines(paste0("tables/", x))
-    writeLines(temp, file(paste0(book_dir, "/", x)))
-   })}
-```
 

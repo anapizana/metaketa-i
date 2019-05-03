@@ -38,13 +38,12 @@ The lines below describe the cleaning of variables P, Q, N (updated Nij), and N_
 
   #load functions
   source("0a_functions_main.R")
-  source("0b_functions_ri.R")
 ```
 
 ```{r, include=FALSE, eval=standalone}
 
   if(run_cleaning){
-  source("1a_prep_clean.R")
+  source("1a_prep_clean.Rmd")
   rm(list = ls(pattern = "^ben|^brz|^bf|^mex|^ug|^comp"))
   }
   
