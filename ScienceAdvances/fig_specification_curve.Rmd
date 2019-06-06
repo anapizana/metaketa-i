@@ -1,0 +1,618 @@
+---
+title: "Specification curve"
+output:
+  html_document:
+    number_sections: yes
+  pdf_document:
+    number_sections: yes
+
+---
+
+
+Possible arguments to vary over:
+
+* Covariates y/n
+* Weighted y/n
+* Standard errors clustering (on politician vs at level of randomization)
+* NOT IMPLEMENTED: Logit/LPM
+* Dropping cases with missing Ps versus imputing using the individual study PAP procedures
+* Mexico posteriors minus priors versus Q-only approach
+* Ug1 good/bad news Ug1 PAP versus revised coding
+* Ug2 chairs only y/n
+* Ug2 contested elections y/n
+* Ug2 LC3 included y/n ??
+* BF: recoding the m3=0/m1=1 as m1=0 cases y/n
+
+```{r, echo=FALSE}
+standalone <- FALSE #whether running this file independently or rendering in main replication file
+```
+
+
+```{r, echo=FALSE, eval=standalone, warning=FALSE, message=FALSE}
+library(tidyr); library(plyr); library(dplyr); library(lfe); library(ggplot2);library(gridExtra)
+library(xtable)
+
+source("0a_functions_main.R")
+
+export_to_book <- FALSE
+book_dir <- "11 Book/4 Manuscript drafts/201804 For Copyediting/files"
+load_specification_matrices <- TRUE #if FALSE will generate matrices for specification curve from scratch (time intensive)
+```
+
+# Function to generate all specification results
+
+```{r}
+run_spec <- function(leave_out,
+                     bf_m1_recode,   # if TRUE, codes voting for incumbent as 0 when m3==0 and m1==1
+                     ug1_m10_recode, # if TRUE, uses diff btw Q and P aggregated
+                     mex_m10_recode, # if TRUE, uses post - prior(control post) diff
+                     NA_P_recode,    
+                     depvar,
+                     news,
+                     # model,
+                     cl_pol,
+                     weights,
+                     cov,
+                     with_N,
+                     contested_seats,
+                     exclude_councilors,
+                     exclude_redistrict,
+                     exclude_switch
+                     ){
+  
+  dat <- madat
+  #leave_out
+  if(leave_out!="none") dat <- dat[madat$ctry != leave_out,]
+    
+  # NA_P_coding
+  if(NA_P_recode){
+    missingP <- which(((is.na(dat$mpprior) | 
+                        is.na(dat$mpdistrictalign_perc) | 
+                        is.na(dat$mpmoneyalign_perc)) & dat$ctry == "ug1") | 
+                        is.na(dat$P))
+    dat$N_good[missingP] <- NA
+    dat$m9[dat$ctry=="mex"] <- dat$prior_i4[dat$ctry=="mex"] #non imputed values
+  }
+  
+  # bf_m1_coding
+  #m3==0 in Burkina Faso means unlikely to vote or definitely not voting.
+  if(bf_m1_recode) dat$m1[dat$m1==1 & dat$m3==0 & dat$ctry == "bf"] <- 0
+
+  # ug1_m10_recode
+  if(ug1_m10_recode){
+    dat$N_good[dat$ctry=="ug1"] <- 1*(dat$N_alt[dat$ctry=="ug1"]>0)
+  }
+
+  # mex_m10_coding
+  if(mex_m10_recode){
+    dat$mex_news <- dat$m9 - dat$posterior_incumbent43
+    table(dat$posterior_incumbent43[dat$ctry=="mex" & dat$posterior_incumbent43==dat$m9])
+    dat$mex_news <- case_when(dat$mex_news>0 ~ 1,
+                                dat$mex_news==0 & dat$posterior_incumbent43 < 0 ~ 1,
+                                dat$mex_news==0 & dat$posterior_incumbent43 > 0 ~ 0,
+                                dat$mex_news<0 ~ 0)
+    #tie-breaking when news==0 & posterior==0 & prior==0? (113 obs missing news coding)
+    dat$N_good[dat$ctry=="mex"] <- dat$mex_news[dat$ctry == "mex"]
+  }
+
+  #estimates function return dat
+  if(cov=="") cov <- NULL
+  
+  good <- case_when(news == "good" ~ TRUE,
+                    news == "bad" ~ FALSE)
+  
+  if(is.na(good)) good <- NULL
+  
+  if(exclude_redistrict){
+    dat <- dat[is.na(dat$lc5.councillor.redistricted2016)|dat$lc5.councillor.redistricted2016=="TRUE",]
+  }
+  
+  if(exclude_switch){
+    dat <- dat[is.na(dat$lc5.chair.party.switch)|dat$lc5.chair.party.switch==0,]
+    dat <- dat[is.na(dat$lc5.councillor.party.switch)|dat$lc5.councillor.party.switch==0,]
+  }
+  
+  if(cl_pol){
+    dat$cl <- dat$cl_pol    
+    est <- estimates(dat = dat,
+                      depvar = depvar, exclude_councilors = exclude_councilors,
+                      cov = cov, weights = weights,
+                      good = good, with_N = with_N, contested_seats = contested_seats, 
+                      country = NULL)
+  }else{
+      
+      est <- estimates(dat = dat,
+                      depvar = depvar, exclude_councilors = exclude_councilors, 
+                      cov = cov, weights = weights,
+                      good = good, with_N = with_N, contested_seats = contested_seats, 
+                      country = NULL)
+  }
+  
+  return(est)
+}
+
+```
+
+# Create grid of all specifications
+
+```{r}
+args <- list(
+  leave_out = c("none", "ben", "brz", "bf", "mex", "ug1", "ug2"),
+  bf_m1_recode = c(TRUE, FALSE),
+  ug1_m10_recode = c(TRUE, FALSE),
+  mex_m10_recode = c(TRUE, FALSE),
+  NA_P_recode = c(TRUE, FALSE),
+  depvar = c("m1", "m3"),
+  news = c("good", "bad"),# "overall"),
+  # model = c("logit", "lpm"),
+  cl_pol = c(TRUE, FALSE),
+  weights = c(TRUE, FALSE),
+  cov = c("", "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"),
+  with_N = c(TRUE, FALSE),
+  contested_seats = c(TRUE, FALSE),
+  exclude_councilors = c(TRUE, FALSE),
+  exclude_redistrict = c(TRUE, FALSE),
+  exclude_switch = c(TRUE, FALSE)
+  )
+
+args_m <- expand.grid(args, stringsAsFactors = FALSE)
+```
+
+# Get rid of redundant/non-sensical specifications
+```{r}
+args_m <- args_m %>% 
+  filter(!(leave_out == "ug2" & (contested_seats == TRUE | exclude_councilors == TRUE | 
+                                   exclude_redistrict == TRUE | exclude_switch == TRUE))) %>% 
+  filter(!(leave_out == "bf" & bf_m1_recode == TRUE)) %>%
+  filter(!(leave_out == "mex" & mex_m10_recode == TRUE)) %>%
+  filter(!(leave_out == "ug1" & ug1_m10_recode == TRUE))
+```
+
+#Apply function and return est and p-values.
+```{r}
+
+  #REVIEW: politician-level key var
+  # mexsurdat - municipality
+  # ug1 - candidateid
+  # ug2 - district_lower
+  # brz- muni
+  # ben - commune 
+  # bf - commune
+
+  madat <- pool_studies(
+    add_vars= c("nij", "Q_alt", "N_alt",
+                "posterior_incumbent43", #posterior on incumbent with missing values replaced by 0
+                "prior_i4", #prior without imputation (with imputation imported as m9)
+                "mppriorug", "mpdistrictalign_perc", "mpmoneyalign_perc", 
+                "municipality", "muni", "commune", "district_lower", "candidateid"),           
+    dir = "data/temp")
+
+  madat$cl_pol <- case_when(madat$ctry == "ben" ~ as.character(paste0(madat$ctry, madat$commune)),
+                          madat$ctry == "bf" ~ as.character(paste0(madat$ctry, madat$commune)),
+                          madat$ctry == "brz" ~ as.character(paste0(madat$ctry, madat$muni)),
+                          madat$ctry == "mex" ~ as.character(paste0(madat$ctry, madat$municipality)),
+                          madat$ctry == "ug1" ~ as.character(paste0(madat$ctry, madat$candidateid)),
+                          madat$ctry == "ug2" ~ as.character(paste0(madat$ctry, madat$district_lower)))
+
+  madat$m1[is.na(madat$m1) & madat$m3==0] <- 0
+```
+
+```{r, echo=FALSE}
+
+specs_output <- function(args_matrix){
+  tab <- t(sapply(1:nrow(args_matrix), function(i) get_ate(args_matrix[i,])))
+  tab <- as.data.frame(tab)
+  colnames(tab) <- c("ate","p")
+  tab
+  }
+
+get_ate <- function(x){
+  args <- as.list(x)
+  fit <- do.call(run_spec, args = args)
+  ate <- summary(fit)$coefficients["treat","Estimate"]
+  pval <- summary(fit)$coefficients["treat","Pr(>|t|)"]
+  return(c(ate, pval))
+}
+
+prep_graph <- function(mat, args){
+  df <- as.data.frame(apply(args, 2, paste0), stringsAsFactors = FALSE)
+  df$ate <- mat$ate
+  df$p <- mat$p
+  df <- df %>% gather(variable, value, -ate, -p)
+  df <- df %>% unite(categ, c("variable", "value"), sep = "_")
+  df$sign_95 <- (df$p<0.05)
+  # df <- df %>% arrange(ate)
+  df <- df %>% filter(!categ %in% c("depvar_m1","depvar_m3"))
+  
+  df$categ <- with(df, case_when(
+                        categ == "with_N_FALSE" ~ "Nij included as covariate",
+                        categ == "with_N_TRUE" ~ "Nij not included as covariate",
+                        categ == "cov_m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i" ~ "Adjusted",
+                        categ == "cov_" ~ "Unadjusted",
+                        categ == "news_good" ~ "ALL SPECIFICATIONS",
+                        categ == "news_bad" ~ "ALL SPECIFICATIONS",
+                        categ == "weights_FALSE" ~ "Weight individuals equally",
+                        categ == "weights_TRUE" ~ "Weight studies equally",
+                        categ == "cl_pol_FALSE" ~ "Cluster: level of assignment",
+                        categ == "cl_pol_TRUE" ~ "Cluster: politician",
+                        categ == "NA_P_recode_FALSE" ~ "P recoded when missing",
+                        categ == "NA_P_recode_TRUE" ~ "P dropped when missing",
+                        categ == "mex_m10_recode_FALSE" ~ "Mexico: News coded using Q",
+                        categ == "mex_m10_recode_TRUE" ~ "Mexico: News coded using posterior-prior",
+                        categ == "ug1_m10_recode_FALSE" ~ "Uganda 1: News!=0 when P=Q", 
+                        categ == "ug1_m10_recode_TRUE" ~ "Uganda 1: News=0 when P=Q",
+                        categ == "bf_m1_recode_FALSE" ~ "Burkina: M1 not recoded",
+                        categ == "bf_m1_recode_TRUE" ~ "Burkina: M1=0 when M3=0",
+                        categ == "exclude_councilors_FALSE" ~ "Uganda 2: include LCV councilors",
+                        categ == "exclude_councilors_TRUE" ~ "Uganda 2: exclude LCV councilors",
+                        categ == "exclude_redistrict_FALSE" ~ "Uganda 2: include redistricted councilors",
+                        categ == "exclude_redistrict_TRUE" ~ "Uganda 2: exclude redistricted councilors",
+                        categ == "exclude_switch_FALSE" ~ "Uganda 2: include party switches",
+                        categ == "exclude_switch_TRUE" ~ "Uganda 2: exclude party switches",
+                        categ == "contested_seats_FALSE" ~ "Uganda 2: Include uncontested seats",
+                        categ == "contested_seats_TRUE" ~ "Uganda 2: Exclude uncontested seats",
+                        categ == "leave_out_ug2" ~ "Leave out: Uganda 2",
+                        categ == "leave_out_ug1" ~ "Leave out: Uganda 1",
+                        categ == "leave_out_mex" ~ "Leave out: Mexico",
+                        categ == "leave_out_bf" ~ "Leave out: Burkina Faso",
+                        categ == "leave_out_brz" ~ "Leave out: Brazil",
+                        categ == "leave_out_ben" ~ "Leave out: Benin",
+                        categ == "leave_out_none" ~ "Leave out: Include all"))
+  df$categ <- factor(df$categ,
+                     levels = c(unique(df$categ)[1:13], unique(df$categ)[25:32], setdiff(unique(df$categ)[14:24], "ALL SPECIFICATIONS"), "ALL SPECIFICATIONS"))
+  df
+}
+
+
+
+plot_spec_ate <- function(mat, args, title=""){
+  df <- prep_graph(mat, args)
+  df$term <- df$categ
+  df$y_ind <- as.numeric(df$categ)
+  # df$sign_95 <- factor(df$sign_95, levels = c(TRUE, FALSE))
+  p <- ggplot(data=df) +
+    geom_point(aes(y = categ, x = ate, color=sign_95, alpha = sign_95), shape = 3, size = .5) +
+    theme_bw() + 
+    scale_alpha_discrete(range=c(.1, .6)) +
+    scale_color_manual(values=c("grey", "black")) +
+    theme(legend.position="none") + 
+    labs(title = title) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank())
+  
+  # g <- p %>% add_brackets(brackets)
+  # grid.arrange(p)
+  return(p)  
+}
+
+# brackets <- list(c("", levels(df$categ)[28], levels(df$categ)[28]),
+#                  c("", levels(df$categ)[26:27]),
+#                  c("", levels(df$categ)[24:25]),
+#                  c("", levels(df$categ)[22:23]),
+#                  c("", levels(df$categ)[20:21]),
+#                  c("", levels(df$categ)[18:19]),
+#                  c("", levels(df$categ)[16:17]),
+#                  c("", levels(df$categ)[14:15]),
+#                  c("", levels(df$categ)[12:13]),
+#                  c("", levels(df$categ)[8:9]),
+#                  c("", levels(df$categ)[c(1,7)]))
+
+# #Credit: https://stackoverflow.com/questions/6178763/how-to-add-braces-to-a-graph/9310002#9310002
+# # Function to create curly braces
+# # x, y position where to put the braces
+# # range is the widht
+# # position: 1 vertical, 2 horizontal
+# # direction: 1 left/down, 2 right/up
+# CurlyBraces <- function(x, y, range, pos = 1, direction = 1 ) {
+# 
+#     a=c(1,2,3,48,50)    # set flexion point for spline
+#     b=c(0,.2,.28,.7,.8) # set depth for spline flexion point
+# 
+#     curve = spline(a, b, n = 50, method = "natural")$y / 2 
+# 
+#     curve = c(curve,rev(curve))
+# 
+#     a_sequence = rep(x,100)
+#     b_sequence = seq(y-range/2,y+range/2,length=100)  
+# 
+#     # direction
+#     if(direction==1)
+#     a_sequence = a_sequence+curve
+#     if(direction==2)
+#     a_sequence = a_sequence-curve
+# 
+#     # pos
+#     if(pos==1)
+#     lines(a_sequence,b_sequence) # vertical
+#     if(pos==2)
+#     lines(b_sequence,a_sequence) # horizontal
+# 
+#     }
+
+# brackets <- list(c("Overall", "Weight", "Weight"), 
+#                  c("Engine", "Cylinders", "Horsepower"),
+#                  c("Transmission", "Gears", "Manual"))
+```
+
+```{r}
+args_m1g <- args_m %>% filter(depvar == "m1" & news == "good")
+args_m1b <- args_m %>% filter(depvar == "m1" & news == "bad")
+args_m3g <- args_m %>% filter(depvar == "m3" & news == "good")
+args_m3b <- args_m %>% filter(depvar == "m3" & news == "bad")
+
+if(!load_specification_matrices){
+  system.time({mat1g <- specs_output(args_m1g)})
+  mat1b <- specs_output(args_m1b)
+  mat3g <- specs_output(args_m3g)
+  mat3b <- specs_output(args_m3b)
+
+save(mat1g, file = "data/temp/mat1g.Rda")
+save(mat1b, file = "data/temp/mat1b.Rda")
+save(mat3g, file = "data/temp/mat3g.Rda")
+save(mat3b, file = "data/temp/mat3b.Rda")
+}else{
+load(file = "data/temp/mat1g.Rda")
+load(file = "data/temp/mat1b.Rda")
+load(file = "data/temp/mat3g.Rda")
+load(file = "data/temp/mat3b.Rda")
+}
+
+```
+```{r, echo=FALSE}
+share_mat1g <- mean(mat1g$p<0.05) %>% round(digits = 3)
+share_mat1b <- mean(mat1b$p<0.05) %>% round(digits = 3)
+share_mat3g <- mean(mat3g$p<0.05) %>% round(digits = 3)
+share_mat3b <- mean(mat3b$p<0.05) %>% round(digits = 3)
+
+# #Vote choice: good news
+# conds1g <- prep_graph(mat1g, args_m1g)
+# prop.table(table(conds1g$categ[conds1g$sign_95 & conds1g$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Vote choice: bad news
+# conds1b <- prep_graph(mat1b, args_m1b)
+# prop.table(table(conds1b$categ[conds1b$sign_95 & conds1b$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Turnout: good news
+# conds3g <- prep_graph(mat3g, args_m3g)
+# prop.table(table(conds3g$categ[conds3g$sign_95 & conds3g$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+# #Turnout: bad news
+# conds3b <- prep_graph(mat3b, args_m3b)
+# prop.table(table(conds3b$categ[conds3b$sign_95 & conds3b$categ!= "ALL SPECIFICATIONS"])) %>% round(., 2) %>% sort
+```
+
+# What specifications matter most? 
+
+The tables below show, for each row of specification choice C, the share of significant specifications when C = TRUE (sign_trues) and C = FALSE (sign_false) relative to the total share of unique *significant*  specifications.
+
+The last column of the last row shows the total share of unique specifications that are significant (p < 0.05).
+
+```{r}
+
+share_sign_per_spec <- function(mat, args){
+  # df <- as.data.frame(apply(args, 2, paste0), stringsAsFactors = FALSE)
+  df <- args
+  df$ate <- mat$ate
+  df$p <- mat$p
+  df$sign_95 <- (df$p < 0.05)
+  df <- df %>% select(-depvar, -news, -ate, -p)
+  
+  # adjust coding for cov because not TRUE or FALSE
+  df$cov <- (df$cov == "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i")
+
+  # percentage of significant specs occuring when choice = TRUE
+  sign_trues <- sapply(1:ncol(df), function(c) sum(df$sign_95[df[,c] == TRUE])/sum(df$sign_95))
+  # percentage of significant specs occuring when choice = FALSE
+  sign_falses <- sapply(1:ncol(df), function(c) sum(df$sign_95[df[,c] == FALSE])/sum(df$sign_95))
+  # share of total specifications where choice = TRUE
+  share_true <- c(0, apply(df[,-1], 2, function(x) mean(x == TRUE)))
+
+  # share_true["cov"] <- mean(df$cov)
+
+  # adjust coding for ctry exclusion choice
+  ctr <- c("ug1", "ug2", "bf", "brz", "mex", "ben", "none")
+  for(i in 1:7){
+    sign_trues[14+i] <- sum(df$sign_95[df[,1] == ctr[i]])/sum(df$sign_95) #nrow(df)
+    sign_falses[14+i] <- sum(df$sign_95[df[,1] != ctr[i]])/sum(df$sign_95) #nrow(df)
+    share_true[14+i] <- mean(df[,1] == ctr[i])
+  }
+  
+  t <- as.data.frame(rbind(sign_trues, sign_falses, share_true))
+  colnames(t) <- c(colnames(df), paste0("excl_", ctr))
+  t <- round(t, 2) %>% t()
+  t[c(1:13, 15:21, 14),]
+}
+
+#Vote choice: good news
+t1 <- share_sign_per_spec(mat1g, args_m1g)
+t1
+#Vote choice: bad news
+t2 <- share_sign_per_spec(mat1b, args_m1b)
+t2
+#Turnout: good news
+t3 <- share_sign_per_spec(mat3g, args_m3g)
+t3
+#Turnout: bad news
+t4 <- share_sign_per_spec(mat3b, args_m3b)
+t4
+```
+
+```{r, echo=FALSE}
+
+rnames <- c("Leave Out", "Burkina: recode M1", "Uganda 1: recode m10",
+            "Mexico: recode m10", "Recode missing P", "Cluster: Level of politician", 
+            "Weight studies equally", "Covariate adjusted", "Include Nij as covariate",
+            "Uganda 2: include only contested seats", "Uganda 2: Exclude LCV councilors",
+            "Uganda 2: Exclude redistricted councilors", 
+            "Uganda 2: Exclude party switches",
+            "Leave out: Uganda 1", "Leave out: Uganda 2", "Leave out: Burkina Faso",
+            "Leave out: Brazil", "Leave out: Mexico", "Leave out: Benin", "Leave out: Include all",
+            "Share of significant specifications")
+
+format_tab <- function(tab, title, label, file){
+  rownames(tab) <- rnames
+  colnames(tab) <- c("TRUE" , "FALSE", "Share of TRUE (among all specifications)")
+  print(xtable(tab[-1,], caption = title, label = label), header = FALSE,
+        caption.placement = "top", file = file)
+}
+
+format_tab(t1, "Share of significant specifications by decision for vote choice (good news)",
+            "tab:spec_m1g", "tables/spec_m1g.tex")
+
+format_tab(t2, "Share of significant specifications by decision for vote choice (bad news)",
+            "tab:spec_m1b", "tables/spec_m1b.tex")
+
+format_tab(t3, "Share of significant specifications by decision for voter turnout (good news)",
+            "tab:spec_m3g", "tables/spec_m3g.tex")
+
+format_tab(t4, "Share of significant specifications by decision for voter turnout (bad news)",
+            "tab:spec_m3b", "tables/spec_m3b.tex")
+
+
+```
+
+
+```{r, echo=FALSE}
+cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
+atem1g <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE,
+                    depvar = "m1", exclude_councilors = FALSE)$coefficients["treat",]
+atem1b <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE,
+                    depvar = "m1", exclude_councilors = FALSE)$coefficients["treat",]
+atem3g <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE,
+                    depvar = "m3", exclude_councilors = FALSE)$coefficients["treat",]
+atem3b <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE,
+                    depvar = "m3", exclude_councilors = FALSE)$coefficients["treat",]
+```
+
+# Vote for incumbent, good news
+
+Percentage of specifications where $p$ < 0.05: `r toString(share_mat1g)`
+
+```{r, echo=FALSE}
+p1g <- plot_spec_ate(mat1g, args_m1g,
+                     title = "Treatment effect of good news on vote for incumbent (meta-analysis)")
+
+pdf("figures/fig_spec_curve_m1_good.pdf", height = 7, width = 12)
+p1g
+dev.off()
+
+p1g
+```
+
+# Vote for incumbent, bad news
+
+Percentage of specifications where $p$ < 0.05: `r toString(share_mat1b)`
+
+```{r, echo=FALSE}
+p1b <- plot_spec_ate(mat1b, args_m1b,
+                     title = "Treatment effect of bad news on vote for incumbent (meta-analysis)")
+
+pdf("figures/fig_spec_curve_m1_bad.pdf", height = 7, width = 12)
+p1b
+dev.off()
+
+p1b
+```
+
+# Vote for incumbent, good and bad news
+
+```{r, echo=FALSE}
+# 
+p1g <- plot_spec_ate(mat1g, args_m1g, title = "Treatment effect of information on vote for incumbent (meta-analysis)") + 
+  labs(caption = "A Good news") +
+  theme(plot.title = element_text(hjust = 0.5, size = 9),
+        # plot.title = element_blank(),
+        axis.text.y = element_text(size = 6),
+        plot.caption=element_text(hjust=0.5, size = 9, margin=margin(2,0,1,0)),
+        plot.margin = unit(c(1,2,.5,2), "cm"))+
+  geom_vline(xintercept=atem1g, linetype="longdash")+
+  coord_cartesian(xlim = c(min(c(mat1g$ate, mat1b$ate)), max(c(mat1g$ate, mat1b$ate)))) 
+
+p1b <- plot_spec_ate(mat1b, args_m1b, title = "") +
+  labs(caption = "B Bad news") +
+  theme(plot.title = element_blank(),
+        axis.text.y = element_text(size = 6),
+        plot.caption=element_text(hjust=0.5, size = 9, margin=margin(2,0,1,0)),
+        plot.margin = unit(c(0,2,1.5,2), "cm"))+
+  geom_vline(xintercept=atem1b, linetype="longdash")+
+  coord_cartesian(xlim = c(min(c(mat1g$ate, mat1b$ate)), max(c(mat1g$ate, mat1b$ate)))) 
+
+pdf("figures/fig_spec_curve_m1.pdf")
+grid.arrange(p1g, p1b, nrow = 2, widths = 8, heights = c(17, 16))
+dev.off()
+
+if(export_to_book){
+  pdf(paste0(book_dir, "/fig_spec_curve_m1.pdf"))
+  grid.arrange(p1g, p1b, nrow = 2, widths = 8, heights = c(17, 16))
+  dev.off()
+}
+```
+
+# Voter turnout, good news
+
+Percentage of specifications where $p$ < 0.05: `r toString(share_mat3g)`
+
+```{r, echo=FALSE}
+pdf("figures/fig_spec_curve_m3_good.pdf", height = 7, width = 12)
+plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
+dev.off()
+
+if(export_to_book){
+  pdf(paste0(book_dir, "/fig_spec_curve_m3_good.pdf"), height = 7, width = 12)
+  plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
+dev.off()
+}
+
+  plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of good news on voter turnout (meta-analysis)")
+
+```
+
+# Voter turnout, bad news
+
+Percentage of specifications where $p$ < 0.05: `r toString(share_mat3b)`
+
+```{r, echo=FALSE}
+pdf("figures/fig_spec_curve_m3_bad.pdf", height = 7, width = 12)
+plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
+dev.off()
+
+if(export_to_book){
+  pdf(paste0(book_dir, "/fig_spec_curve_m3_bad.pdf"), height = 7, width = 12)
+  plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
+dev.off()
+}
+
+  plot_spec_ate(mat3b, args_m3b, title = "Treatment effect of bad news on voter turnout (meta-analysis)")
+
+```
+
+#Voter Turnout, good and bad news
+
+```{r, echo=FALSE}
+p3g <- plot_spec_ate(mat3g, args_m3g, title = "Treatment effect of information on voter turnout (meta-analysis)") + 
+  labs(caption = "A Good news") +
+  theme(plot.title = element_text(hjust = 0.5, size = 9),
+        # plot.title = element_blank(),
+        axis.text.y = element_text(size = 6),
+        plot.caption=element_text(hjust=0.5, size = 9, margin=margin(2,0,1,0)),
+        plot.margin = unit(c(1,2,.5,2), "cm")) +
+  geom_vline(xintercept=atem3g, linetype="longdash") +
+  coord_cartesian(xlim = c(min(c(mat3g$ate, mat3b$ate)), max(c(mat3g$ate, mat3b$ate)))) 
+
+p3b <- plot_spec_ate(mat3b, args_m3b, title = "") +
+  labs(caption = "B Bad news") +
+  theme(plot.title = element_blank(),
+        axis.text.y = element_text(size = 6),
+        plot.caption=element_text(hjust=0.5, size = 9, margin=margin(2,0,1,0)),
+        plot.margin = unit(c(0,2,1.5,2), "cm")) +
+  geom_vline(xintercept=atem3b, linetype="longdash") +
+  coord_cartesian(xlim = c(min(c(mat3g$ate, mat3b$ate)), max(c(mat3g$ate, mat3b$ate)))) 
+
+pdf("figures/fig_spec_curve_m3.pdf")
+grid.arrange(p3g, p3b, nrow = 2, widths = 8, heights = c(17, 16))
+dev.off()
+
+if(export_to_book){
+  pdf(paste0(book_dir, "/fig_spec_curve_m3.pdf"))
+  grid.arrange(p3g, p3b, nrow = 2, widths = 8, heights = c(17, 16))
+  dev.off()
+}
+```
+

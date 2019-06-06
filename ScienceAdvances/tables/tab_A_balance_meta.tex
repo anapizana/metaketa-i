@@ -1,0 +1,38 @@
+\begin{table}[h!]
+\caption{Balance of covariates}
+\centering
+\footnotesize
+\begin{tabular}{lllllll}
+  \hline
+Baseline covariate & Control mean  & Treat mean & d-stat & $\hat{\beta_1}$ & $\hat{\beta_2}$ & N \\ 
+  \hline
+Prior & 1.35 & 1.38 & 0.03 & 0.05 & 0.02* & 20617 \\ 
+   & (1.26) & (1.28) &  & (0.01) & (0.01) &  \\ 
+  Good news & 0.48 & 0.48 & 0 & -0.1*** & -0.01*** & 23803 \\ 
+   & (0.5) & (0.5) &  & (0.02) & (0.01) &  \\ 
+  Gender & 0.43 & 0.42 & -0.02 & 0.01* & -0.02*** & 23998 \\ 
+   & (0.5) & (0.49) &  & (0.01) & (0.01) &  \\ 
+  Age & 39.56 & 39.62 & 0 & 0*** & 0*** & 23917 \\ 
+   & (14.96) & (14.96) &  & (0) & (0) &  \\ 
+  Co-ethnicity & 0.65 & 0.63 & -0.03 & 0*** & -0.03*** & 19391 \\ 
+   & (0.48) & (0.48) &  & (0.01) & (0.01) &  \\ 
+  Education & 5.45 & 5.43 & 0 & 0*** & 0*** & 23960 \\ 
+   & (4.79) & (4.71) &  & (0) & (0) &  \\ 
+  Wealth & 2.42 & 2.41 & -0.01 & 0.02* & 0.01* & 23693 \\ 
+   & (1.44) & (1.42) &  & (0.01) & (0) &  \\ 
+  Co-Partisanship & 3.64 & 3.6 & -0.01 & 0.06 & 0*** & 20025 \\ 
+   & (2.81) & (2.78) &  & (0) & (0) &  \\ 
+  Voted in past election & 0.78 & 0.77 & -0.01 & 0.07 & 0.17 & 23892 \\ 
+   & (0.42) & (0.42) &  & (0.01) & (0.01) &  \\ 
+  Voted incumbent past election & 0.66 & 0.66 & 0 & 0.22 & 0.03* & 19869 \\ 
+   & (0.47) & (0.47) &  & (0.01) & (0.01) &  \\ 
+  Clientelism & 1.99 & 1.96 & -0.02 & -0.04*** & 0*** & 22911 \\ 
+   & (1.41) & (1.41) &  & (0) & (0) &  \\ 
+  Salience of information & 0.52 & 0.54 & 0.03 & -0.04*** & 0*** & 20143 \\ 
+   & (0.5) & (0.5) &  & (0.01) & (0.01) &  \\ 
+  Credibility of information & 0.41 & 0.43 & 0.05 & -0.02*** & -0.01*** & 21415 \\ 
+   & (0.49) & (0.5) &  & (0.01) & (0.01) &  \\ 
+\hline Pr($\chi^2$) &0.1&&&&& \\ \hline\hline
+\end{tabular}
+\begin{flushleft}\textit{Note:} Results show the control and treatment means for each of the pre-treatment covariates. Means and standard deviations are weighted by block share of non-missing observations. $d$-stat is calculated as the difference between treatment and control means normalized by one standard deviation of the control mean. $\hat{\beta_1}$ ($\hat{\beta_2}$) is the coefficient in a regression of vote choice (turnout) on each covariate separately, in the control sample. As with main specification, we include randomization block fixed effects and standard errors clustered at the level of treatment assignment. We also show the probability of rejecting the null that none of the covariates is predictive of treatment. All regressions include block fixed effects, standard errors clustered at the level of assingment and inverse propensity weights, and all countries are weighted equally. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \end{flushleft}
+\end{table}

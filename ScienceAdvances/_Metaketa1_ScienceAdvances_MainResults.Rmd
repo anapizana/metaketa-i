@@ -1,0 +1,336 @@
+---
+title: "Replication code for 'Voter information campaigns and political accountability: Cumulative findings from a preregistered meta-analysis of coordinated trials'"
+editor_options:
+  chunk_output_type: console
+date: February 22, 2019
+output:
+  # html_document:
+  #   df_print: paged
+  #   toc: yes
+  #   toc_depth: 3
+  pdf_document:
+    keep_tex: yes
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=F}
+
+rm(list = ls())
+set.seed(72779775)
+
+# packages
+pks <- c("readstata13","reshape","dotwhisker", "MASS","plyr","dplyr","foreign",
+         "tidyverse","lfe","stargazer","clubSandwich", "randomizr",
+         "haven","rstudioapi", "stringr", "ri", "car", "xtable", "xlsx", "rmarkdown",
+         "tidyr", "dplyr", "iterators", "parallel", "gridExtra") #"DeclareDesign"
+
+invisible(lapply(pks, function(x) if (!require(x, character.only=T)){install.packages(x);library(x, character.only = T)}))
+
+# knitr options
+require(knitr)
+opts_knit$set(warning = FALSE, message = FALSE)
+opts_knit$set(cache = TRUE)
+options(knitr.duplicate.label = 'allow')
+
+# create output folders
+if(!"figures"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "figures"))
+if(!"tables"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "tables"))
+
+export_to_book <- FALSE
+compile_pdf <- TRUE
+show_code <- TRUE
+```
+
+\clearpage
+
+# Notes on replication script
+
+* This .Rmd file produces all tables, and figures reported in Dunning, Thad et al. 2019. "Voter information campaigns and political accountability: Cummulative findings from a preregistered meta-analysis of coordinated trials." _Science Advances_.
+
+* The code exports results to folders "tables" and "figures" in this file's directory.
+
+* Replication options include:
+
+    * `prep`: if `TRUE`, generate data from raw files, if `FALSE`, loads cleaned data
+    
+    * `n_iter`: number of permutations of treatment assignment used in randomization inference analysis.
+    
+    * `load_iter_matrix`: if `FALSE`, generate `n_iter` columns of treatment assignment according to each study's assignment strategy. If `TRUE`, load existing assignment matrix with 2,000 iterations of treatment assignment.
+    
+    * `ri_action`: treatment effects and *p*-values from randomization inference can be generated from scratch if set to `"generate"`, loaded from existing file if (`"load"`), or not returned (`"ignore"`) in results. Note that these estimations may take a few hours depending on the value of `n_iter`.
+    
+    * `run_bayes`: if `TRUE`, will run Monte Carlo simulations. `run_bayes <- FALSE` will skip the Bayesian analysis.
+    
+    * `load_specification_matrices <- FALSE` will estimate, from scratch, treatment effects under all combinations of specification choices. Likewise, `load_mde_data <- FALSE` will re-run the diagnostic process for the minimal detectable effect analysis. Setting these options to `FALSE` will take several hours to run on an average machine.
+    
+    * `full_m1`: if `FALSE` turns off imputing `0`s for vote choice for cases with where voter turnout is 0 in the cleaned data.
+
+* For a full clean replication empty the folders `figures` and `tables` and subfolder `data/temp` and set options: `prep <- TRUE`, `ri_action <- "generate"`, `run_bayes <- TRUE`, `load_iter_matrix <- FALSE`, `load_specification_matrices <- FALSE`, `load_mde_data <- FALSE`.
+
+* This code requires installation of Rstan (unless `run_bayes <- FALSE`). See installation instructions [here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started).
+
+* The package `xlsx` requires a 64 bit Java install on PCs; for more detail see  https://java.com/en/download/win10.jsp.
+
+```{r}
+  prep <- FALSE
+  n_iter <- 2000
+  load_iter_matrix <- TRUE
+  ri_action <- "generate"
+  run_bayes <- FALSE
+  load_specification_matrices <- FALSE
+  load_mde_data <- TRUE
+  full_m1 <- TRUE
+```
+
+\clearpage
+
+```{r, echo=FALSE, include= FALSE, warning=FALSE, message=FALSE}
+
+if(prep){
+  rmarkdown::render("1_prep_master.Rmd")
+}
+
+rm(list=setdiff(ls(), c("export_to_book", "book_dir", "load_iter_matrix", "run_bayes", "run_ri", "prep", "n_iter", "ri_action", "full_m1","show_code", "load_mde_data","compile_pdf", "load_specification_matrices")))
+
+# load functions
+source("0a_functions_main.R")
+if(run_bayes) source("0b_functions_bayes.R")
+```
+
+```{r dataprep, echo = show_code, warning=F, message=F}
+
+if(prep){
+  madat <- pool_studies(
+    add_vars= c("nij", "Q_alt", "N_alt", "lc5.councillor.party.switch", 
+                "lc5.chair.party.switch", "lc5.councillor.redistricted2016"))
+  if(full_m1){
+    madat$m1[is.na(madat$m1) & madat$m3==0] <- 0
+    #m3==0 in Burkina Faso means unlikely to vote or definitely not voting.
+    madat$m1[madat$m1==1 & madat$m3==0 & madat$ctry == "bf"] <- 0
+    madat_raw <- pool_studies(dir = "data/temp")
+    madat$m1_against <- ifelse(madat_raw$m1==0 & madat$m3==1, 1, 0)  
+    madat$m1_against[is.na(madat$m1_against) & madat$m3==0 & madat$ctry != "bf"] <- 0
+    madat$m1_against[madat$m1==1 & madat$m3==0 & madat$ctry == "bf"] <- 0
+    madat$m1NA <- (is.na(madat$m1) & madat$m3 == 1)
+      
+  }
+  save(madat, file = "data/temp/madat.Rda")
+  write.csv(madat, "madat.csv")
+}
+
+load("data/temp/madat.Rda")
+ 
+# Load previously generated permutation matrices
+if(load_iter_matrix){
+  load("data/temp/assign_iter.Rda")
+}else{
+  system.time(assign_iter <- assign_i(madat, n_iter))
+  save(assign_iter, file = "data/temp/assign_iter.Rda")
+}
+  madat_iter <- cbind.data.frame(madat, assign_iter)
+  rm(assign_iter)
+  save(madat_iter, file = "data/temp/madat_iter.Rda")
+```
+
+# Figure 1: Prior Beliefs and Politician Performance
+
+```{r echo=FALSE, fig.height = 8, fig.width = 16, fig.cap= "Prior Beliefs and Politician Performance. The figure plots performance information (Q) against prior beliefs (P) in each of the studies (left side) and across all studies (right side).  Voters are in the good news group (gray) if information exceeds priors ($Q>P$), or if it confirms positive priors ($P=Q$, and $Q$ is greater than median); otherwise, they are in the bad news group (black). On the right side, $P$ and $Q$ are standardized with a mean of 0 and standard deviation of 1 in each study. The density of the dotted areas is proportionate to the number of voters at each value of $P$ and $Q$; for the pooled analysis, the rugs along the horizontal and vertical axes indicate the distribution of values. The Mexico study lacked a pre-intervention survey, thus we determine the good news and bad news groups according to whether $Q$ is greater than median. The red lines indicate the linear fit between priors and information. For the pooled analysis, the slope of the fit is 0.071; the correlation is 0.053. "}
+
+  #standarize P and Q so that both P has mean 0 , sd 1 and Q normalized with same scaling
+    madatpq <- madat %>%
+    group_by(ctry) %>%
+    mutate(
+          Pi = (P - mean(P, na.rm = TRUE))/sd(P, na.rm = TRUE),
+          Qi  = (Q - mean(P, na.rm = TRUE))/sd(P, na.rm = TRUE),
+          Nchecki = Q - P,
+          Nchecki = (Nchecki - mean(Nchecki, na.rm = TRUE))/sd(Nchecki, na.rm = TRUE ) 
+          ) %>%
+    ungroup()
+    
+  source("fig_PQ_graph.R")
+  pq_graph_new()
+
+```
+
+# Figure 2: Treatment Effect of Information on Incumbent Vote Choice
+
+```{r Fig11.3, echo=show_code, cache=TRUE}
+
+  cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
+
+  t1c1 <-  results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_all_g_unadj.Rda",
+                  good = TRUE, depvar = "m1", exclude_councilors = FALSE)
+  t1c2 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ben_g_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = TRUE, country = "ben")
+  t1c3 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_brz_g_unadj.Rda",
+                  depvar = "m1", weights = TRUE,  good = TRUE, country = "brz")
+  t1c4 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_bf_g_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = TRUE, country = "bf")
+  t1c5 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_mex_g_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = TRUE, country = "mex")
+  t1c6 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ug1_g_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = TRUE, country = "ug1")
+  t1c7 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ug2_g_unadj.Rda",
+                  depvar = "m1", weights = TRUE,  good = TRUE, country = "ug2",
+                  exclude_councilors =FALSE)
+  
+   t2c1 <-  results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_all_b_unadj.Rda",
+                  good = FALSE, depvar = "m1", exclude_councilors =FALSE)
+  t2c2 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ben_b_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = FALSE, country = "ben")
+  t2c3 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_brz_b_unadj.Rda",
+                  depvar = "m1", weights = TRUE,  good = FALSE, country = "brz")
+  t2c4 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_bf_b_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = FALSE, country = "bf")
+  t2c5 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_mex_b_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = FALSE, country = "mex")
+  t2c6 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ug1_b_unadj.Rda",
+                  depvar = "m1", weights = FALSE, good = FALSE, country = "ug1")
+  t2c7 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m1pool_ug2_b_unadj.Rda",
+                  depvar = "m1", weights = TRUE,  good = FALSE, country = "ug2", 
+                  exclude_councilors =FALSE)
+
+```
+
+```{r, include=F, echo=FALSE, cache=T}
+  source("code_formatting/fig3_incumbent_ctry_unadj.R")
+
+  pdf("figures/fig_11.3_incumbent_ctry_unadj.pdf", height = 7, width = 12)
+  fig11.3()
+  dev.off()
+  
+  if(export_to_book){
+  pdf(paste0(book_dir, "/incumbent_ctry_unadj.pdf"), height = 7, width = 12)
+  fig11.3()
+  dev.off()
+  }
+```
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Meta-Analysis: Country-Specific Effects on Vote Choice. Estimated change in the proportion of voters who support an incumbent after receiving good news (left panel) or bad news (right panel) about the politician, compared to receiving no information. Unadjusted estimates. For estimating the average of the study-specific effects (top row), each study is weighted by the inverse of its size. Horizontal lines show 95\\% confidence intervals for the estimated change. Entries under each estimate show $p$-values calculated by randomization inference. In all cases, the differences are close to zero and statistically insignificant."), echo=FALSE}
+fig11.3()
+```
+
+<!-- ![](figures/fig_11.3_incumbent_ctry_unadj.pdf){width=90%} -->
+
+\clearpage
+
+# Figure 3:  Treatment Effect of Information on Voter Turnout
+
+```{r Fig11.4, include=F, echo=show_code, cache=TRUE}
+
+  t3c1 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_all_g_unadj.Rda",
+                  good = TRUE, depvar = "m3", exclude_councilors =FALSE)
+
+  t3c2 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ben_g_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = TRUE, country = "ben")
+  t3c3 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_brz_g_unadj.Rda",
+                  depvar = "m3", weights = TRUE,  good = TRUE, country = "brz")
+  t3c4 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_bf_g_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = TRUE, country = "bf")
+  
+```
+
+```{r, include=F, echo=show_code, cache=TRUE}
+  t3c5 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_mex_g_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = TRUE, country = "mex")
+  t3c6 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ug1_g_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = TRUE, country = "ug1")
+  t3c7 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ug2_g_unadj.Rda",
+                  depvar = "m3", weights = TRUE,  good = TRUE, country = "ug2", exclude_councilors =FALSE)
+
+```
+
+```{r, include=F, echo=show_code, cache=TRUE}
+  t4c1 <-  results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_all_b_unadj.Rda",
+                  good = FALSE, depvar = "m3", exclude_councilors =FALSE)
+
+  t4c2 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ben_b_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = FALSE, country = "ben")
+  t4c3 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_brz_b_unadj.Rda",
+                  depvar = "m3", weights = TRUE,  good = FALSE, country = "brz")
+  t4c4 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_bf_b_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = FALSE, country = "bf")
+```
+
+```{r, include=F, echo=show_code, cache=TRUE}
+  t4c5 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_mex_b_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = FALSE, country = "mex")
+  t4c6 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ug1_b_unadj.Rda",
+                  depvar = "m3", weights = FALSE, good = FALSE, country = "ug1")
+  t4c7 <- results(dat = madat_iter, ri_p = ri_action, sims = n_iter,
+                  file_rite_obj = "data/temp/ri_m3pool_ug2_b_unadj.Rda",
+                  depvar = "m3", weights = TRUE,  good = FALSE, country = "ug2", exclude_councilors =FALSE)
+  
+```
+
+```{r, include=FALSE, cache=TRUE}
+
+  source("code_formatting/fig4_turnout_ctry_unadj.R")
+  
+  pdf("figures/fig_11.4_turnout_ctry_unadj.pdf", height = 7, width = 12)
+  fig11.4()
+  dev.off()
+  
+  if(export_to_book){
+  pdf(paste0(book_dir, "/turnout_ctry_unadj.pdf"), height = 7, width = 12)
+  fig11.4()
+  dev.off()
+  }
+
+```
+
+<!-- ![](figures/fig_11.4_turnout_ctry_unadj.pdf) -->
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Meta-Analysis: Country-Specific Effects on Turnout. See notes to Figure \\ref{vote_effects}. In all but one test, the differences are close to zero and are statistically insignificant, using p-values from randomization inference."), echo=FALSE}
+fig11.4()
+```
+
+\clearpage
+
+# Figures 4 and 5: Robustness of Findings Across Specifications
+
+```{r spec, include=F, eval=TRUE, cache=TRUE}
+rmarkdown::render("fig_specification_curve.Rmd")
+```
+
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Specification Distribution: Vote for Incumbent. Distribution of average treatment effects on vote for incumbent for a given specification choice, varying all other choices. Darkened vertical lines show estimates for which $p<0.05$. The dashed vertical line indicates average treatment effect reported in Table 11.1."), echo=FALSE}
+  grid.arrange(p1g, p1b, nrow = 2, widths = 8, heights = c(25, 25))
+  rm(p1g, p1b)
+```
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Specification Distribution: Turnout. Distribution of average treatment effects on voter turnout for a given specification choice, varying all other choices. Darkened vertical lines show estimates for which $p<0.05$. The dashed vertical line indicates average treatment effect reported in Table 11.1."), echo=FALSE, message = FALSE, warning=FALSE}
+  grid.arrange(p3g, p3b, nrow = 2, widths = 8, heights = c(25, 25))
+  rm(p3g, p3b)
+
+```
+

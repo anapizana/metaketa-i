@@ -1,0 +1,1013 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Replication code of Supplementary Information for Voter information campaigns and political accountability: Cumulative findings from a preregistered meta-analysis of coordinated trials},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Replication code of Supplementary Information for `Voter information
+campaigns and political accountability: Cumulative findings from a
+preregistered meta-analysis of coordinated trials'}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{February 22, 2019}
+
+\usepackage{caption,tikz}
+\captionsetup{width=5in}
+\usepackage{graphicx}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\section{Table 2: Descriptive statistics for sample of good
+news}\label{table-2-descriptive-statistics-for-sample-of-good-news}
+
+\begin{table}[htb] \centering 
+  \caption{Descriptive statistics for sample of good news} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{1pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+Nij & 19,400 & 1.650 & 1.156 & 0.000 & 4.000 \\ 
+Voter turnout & 16,037 & 0.801 & 0.399 & 0.000 & 1.000 \\ 
+Effort & 13,237 & 2.396 & 0.944 & 1.000 & 4.000 \\ 
+Dishonesty & 13,756 & 2.458 & 1.209 & 1.000 & 5.000 \\ 
+Backlash & 2,157 & 0.232 & 0.309 & 0.000 & 1.000 \\ 
+Age & 20,020 & 35.461 & 12.729 & 17.000 & 99.000 \\ 
+Co-ethnicity & 17,382 & 0.665 & 0.472 & 0.000 & 1.000 \\ 
+Education & 20,033 & 7.191 & 4.108 & 0.000 & 20.000 \\ 
+Wealth & 19,903 & 2.772 & 1.091 & $-$2.317 & 5.000 \\ 
+Co-Partisanship & 16,550 & 1.155 & 1.797 & 0.000 & 9.000 \\ 
+Voted in past election & 20,015 & 0.827 & 0.378 & 0.000 & 1.000 \\ 
+Secret ballot & 19,788 & 2.098 & 1.420 & 1.000 & 5.000 \\ 
+Free and fair elections & 19,303 & 3.349 & 1.501 & 1.000 & 5.000 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:}  $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \end{flushleft}
+\end{table}
+
+\section{Table 3: Descriptive statistics for sample of bad
+news}\label{table-3-descriptive-statistics-for-sample-of-bad-news}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cat}\NormalTok{(}\KeywordTok{readLines}\NormalTok{(}\StringTok{'tables/tab_A11.1_sumstats_bad.tex'}\NormalTok{), }\DataTypeTok{sep =} \StringTok{'}\CharTok{\textbackslash{}n}\StringTok{'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}[htb] \centering 
+  \caption{Descriptive statistics for sample of bad news} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{1pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+Nij & 19,191 & $-$1.077 & 1.031 & $-$4.000 & 0.000 \\ 
+Voter turnout & 15,597 & 0.798 & 0.401 & 0.000 & 1.000 \\ 
+Effort & 12,761 & 2.597 & 0.938 & 1.000 & 4.000 \\ 
+Dishonesty & 13,589 & 2.481 & 1.239 & 1.000 & 5.000 \\ 
+Backlash & 2,339 & 0.147 & 0.192 & 0.000 & 1.000 \\ 
+Age & 19,584 & 37.370 & 13.345 & 18.000 & 92.000 \\ 
+Co-ethnicity & 16,749 & 0.815 & 0.388 & 0.000 & 1.000 \\ 
+Education & 19,604 & 6.657 & 3.968 & 0.000 & 20.000 \\ 
+Wealth & 19,260 & 2.890 & 1.057 & $-$2.805 & 5.000 \\ 
+Co-Partisanship & 17,002 & 1.151 & 1.675 & 0.000 & 9.000 \\ 
+Voted in past election & 19,568 & 0.862 & 0.345 & 0.000 & 1.000 \\ 
+Secret ballot & 19,281 & 2.401 & 1.407 & 1.000 & 5.000 \\ 
+Free and fair elections & 19,103 & 3.571 & 1.437 & 1.000 & 5.000 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:}  $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 4: Balance of
+covariates}\label{table-4-balance-of-covariates}
+
+\begin{table}[h!]
+\caption{Balance of covariates}
+\centering
+\footnotesize
+\begin{tabular}{lllllll}
+  \hline
+Baseline covariate & Control mean  & Treat mean & d-stat & $\hat{\beta_1}$ & $\hat{\beta_2}$ & N \\ 
+  \hline
+Prior & 1.35 & 1.38 & 0.03 & 0.05 & 0.02* & 20617 \\ 
+   & (1.26) & (1.28) &  & (0.01) & (0.01) &  \\ 
+  Good news & 0.48 & 0.48 & 0 & -0.1*** & -0.01*** & 23803 \\ 
+   & (0.5) & (0.5) &  & (0.02) & (0.01) &  \\ 
+  Gender & 0.43 & 0.42 & -0.02 & 0.01* & -0.02*** & 23998 \\ 
+   & (0.5) & (0.49) &  & (0.01) & (0.01) &  \\ 
+  Age & 39.56 & 39.62 & 0 & 0*** & 0*** & 23917 \\ 
+   & (14.96) & (14.96) &  & (0) & (0) &  \\ 
+  Co-ethnicity & 0.65 & 0.63 & -0.03 & 0*** & -0.03*** & 19391 \\ 
+   & (0.48) & (0.48) &  & (0.01) & (0.01) &  \\ 
+  Education & 5.45 & 5.43 & 0 & 0*** & 0*** & 23960 \\ 
+   & (4.79) & (4.71) &  & (0) & (0) &  \\ 
+  Wealth & 2.42 & 2.41 & -0.01 & 0.02* & 0.01* & 23693 \\ 
+   & (1.44) & (1.42) &  & (0.01) & (0) &  \\ 
+  Co-Partisanship & 3.64 & 3.6 & -0.01 & 0.06 & 0*** & 20025 \\ 
+   & (2.81) & (2.78) &  & (0) & (0) &  \\ 
+  Voted in past election & 0.78 & 0.77 & -0.01 & 0.07 & 0.17 & 23892 \\ 
+   & (0.42) & (0.42) &  & (0.01) & (0.01) &  \\ 
+  Voted incumbent past election & 0.66 & 0.66 & 0 & 0.22 & 0.03* & 19869 \\ 
+   & (0.47) & (0.47) &  & (0.01) & (0.01) &  \\ 
+  Clientelism & 1.99 & 1.96 & -0.02 & -0.04*** & 0*** & 22911 \\ 
+   & (1.41) & (1.41) &  & (0) & (0) &  \\ 
+  Salience of information & 0.52 & 0.54 & 0.03 & -0.04*** & 0*** & 20143 \\ 
+   & (0.5) & (0.5) &  & (0.01) & (0.01) &  \\ 
+  Credibility of information & 0.41 & 0.43 & 0.05 & -0.02*** & -0.01*** & 21415 \\ 
+   & (0.49) & (0.5) &  & (0.01) & (0.01) &  \\ 
+\hline Pr($\chi^2$) &0.1&&&&& \\ \hline\hline
+\end{tabular}
+\begin{flushleft}\textit{Note:} Results show the control and treatment means for each of the pre-treatment covariates. Means and standard deviations are weighted by block share of non-missing observations. $d$-stat is calculated as the difference between treatment and control means normalized by one standard deviation of the control mean. $\hat{\beta_1}$ ($\hat{\beta_2}$) is the coefficient in a regression of vote choice (turnout) on each covariate separately, in the control sample. As with main specification, we include randomization block fixed effects and standard errors clustered at the level of treatment assignment. We also show the probability of rejecting the null that none of the covariates is predictive of treatment. All regressions include block fixed effects, standard errors clustered at the level of assingment and inverse propensity weights, and all countries are weighted equally. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Figure 6: Power Analysis}\label{figure-6-power-analysis}
+
+\section{Table 5: Effect of
+Information}\label{table-5-effect-of-information}
+
+\begin{verbatim}
+## Loading required package: doParallel
+\end{verbatim}
+
+\begin{verbatim}
+## Loading required package: foreach
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'foreach'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:purrr':
+## 
+##     accumulate, when
+\end{verbatim}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of Information, Conditional on Distance between Information and Priors, on Vote Choice and Turnout} 
+  \label{main_results} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{Vote Choice}&\multicolumn{2}{c}{Turnout}& Vote Choice & Turnout \\ 
+\cline{2-7} 
+ & Good News & Bad News & Good News & Bad News & \multicolumn{2}{c}{Overall} \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.0004 & $-$0.003 & 0.002 & 0.018 & 0.003 & 0.017$^{*}$ \\ 
+  & (0.015) & (0.015) & (0.013) & (0.012) & (0.010) & (0.008) \\ 
+  & & & & & & \\ 
+ N$_{ij}$ & $-$0.017 & $-$0.049$^{***}$ & $-$0.0003 & 0.011 & $-$0.050$^{***}$ & 0.009 \\ 
+  & (0.015) & (0.014) & (0.014) & (0.013) & (0.012) & (0.011) \\ 
+  & & & & & & \\ 
+ Treatment * N$_{ij}$ & $-$0.010 & $-$0.001 & 0.001 & $-$0.0001 & $-$0.002 & $-$0.002 \\ 
+  & (0.019) & (0.019) & (0.019) & (0.015) & (0.012) & (0.011) \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.356 & 0.398 & 0.843 & 0.835 & 0.369 & 0.837 \\ 
+RI $p$-value & 0.981 & 0.866 & 0.892 & 0.167 & 0.813 & 0.062 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.954} & \multicolumn{2}{c}{0.29} \\
+Covariates & Yes & Yes & Yes & Yes & Yes & Yes \\ 
+Observations & 13,196 & 12,531 & 14,500 & 13,148 & 25,820 & 27,737 \\ 
+R$^{2}$ & 0.299 & 0.281 & 0.200 & 0.160 & 0.274 & 0.165 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:}  Columns 1-4 estimate equations (\ref{metaeq.main1a}) and (\ref{metaeq.main1b}), while columns 5-6 estimate equation (\ref{metaeq.main3}).  ``Vote choice'' indicates support for the incumbent candidate or party. Standard errors are clustered at the level of treatment assignment. Pooled results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. We include randomization block fixed effects and a full set of covariate-treatment interactions. Control mean is the weighted and unadjusted average in the control group. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 7: Differential
+attrition}\label{table-7-differential-attrition}
+
+\begin{table}[h!]
+\caption{Differential attrition}
+\centering
+\begin{tabular}{rrlrrlr}
+  \hline& \multicolumn{3}{c}{Vote Choice}&\multicolumn{3}{c}{Voter Turnout} \\
+ & Estimate & Std. Error & $p$-value & Estimate & Std. Error & $p$-value \\ 
+  \hline
+Treatment & 0.00 & (0) & 0.57 & 0.00 & (0) & 0.71 \\ 
+   \hline
+F-stat & \multicolumn{3}{c}{13.78}&\multicolumn{3}{c}{15.26} \\
+Pr(F) & \multicolumn{3}{c}{0.39}&\multicolumn{3}{c}{0.29} \\ \hline \hline
+\end{tabular}
+\begin{flushleft}\textit{Note:} Table shows the effect size of treatment on data missingness in incumbent vote choice and voter turnout across the entire sample. Pr(F) shows the probability of rejecting the null that none of the covariates is differentally determining attrition across treatment and control conditions. All regressions include block fixed effects, standard errors clustered at the level of assingment and inverse propensity weights, and all countries are weighted equally.$^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Figure 7: Bayesian Meta-Analysis: Vote
+Choice}\label{figure-7-bayesian-meta-analysis-vote-choice}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Stan code used in Fig 11.5 and 11.6 to sample from posterior distributions}
+
+  \NormalTok{bmodel <-}\StringTok{ "}
+\StringTok{  data \{}
+\StringTok{    int<lower=0> J; // number of countries }
+\StringTok{    real y[J]; // estimated treatment effects}
+\StringTok{    real<lower=0> sigma[J]; // s.e. of effect estimates }
+\StringTok{  \}}
+\StringTok{  parameters \{}
+\StringTok{    real mu; }
+\StringTok{    real<lower=0> tau;}
+\StringTok{    real eta[J];}
+\StringTok{  \}}
+\StringTok{  transformed parameters \{}
+\StringTok{    real theta[J];}
+\StringTok{    for (j in 1:J)}
+\StringTok{      theta[j] = mu + tau * eta[j];}
+\StringTok{  \}}
+\StringTok{  model \{}
+\StringTok{    target += normal_lpdf(eta | 0, 1);}
+\StringTok{    target += normal_lpdf(y | theta, sigma);}
+\StringTok{  \}}
+\StringTok{  "}
+\end{Highlighting}
+\end{Shaded}
+
+\clearpage
+
+\section{Figure 8: Bayesian Meta-Analysis:
+Turnout}\label{figure-8-bayesian-meta-analysis-turnout}
+
+\clearpage
+
+\section{Table 11.3: Manipulation check (effect of treatment on correct
+recollection)}\label{table-11.3-manipulation-check-effect-of-treatment-on-correct-recollection}
+
+\begin{table}[!htbp] \centering 
+  \caption{Manipulation check: Effect of treatment on correct recollection, pooling good and bad news [unregistered analysis]} 
+  \label{mcheck} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{Correct Recollection} \\ 
+\cline{2-7} 
+ & Overall & Benin & Brazil & Mexico & Uganda 1 & Uganda 2 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.072$^{***}$ & 0.050 & 0.038 & 0.149$^{***}$ & 0.119$^{***}$ & $-$0.0001 \\ 
+  & (0.015) & (0.059) & (0.021) & (0.015) & (0.035) & (0.008) \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Covariates & No & No & No & No & No & No \\ 
+Observations & 16,173 & 897 & 1,677 & 2,089 & 750 & 10,760 \\ 
+R$^{2}$ & 0.320 & 0.276 & 0.378 & 0.137 & 0.035 & 0.205 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Notes:} The table reports results on manipulation checks across studies, using recollection or accuracy tests at endline that were specific to the content of each study's interventions (MPAP measure M30). The dependent variable, correct recollection, is dichotomized in each study using the following measures: Benin: whether correctly recalled the relative performance of incumbent in plenary and committee work; Brazil: whether correctly recalled whether municipal account was accepted or rejected; Mexico: identification of content of the flyer; Uganda 1: index consisting of knowledge of MP responsibilities, MP priorities for constituency, and identities of contesting candidates. Individuals with an index equal to or greater than 1.5 on a 0-3 scale were coded as correct recalls; Uganda 2: whether correctly recalled relative financial accountability relative to other districts. We include randomization block fixed effects. Standard errors are clustered at the level of treatment assignment. $^{*}$p$<$0.05; $^{**}$p$<$0.01; $^{***}$p$<$0.001.\end{flushleft}
+\end{table}
+
+\section{Table 11.4: Manipulation check (difference between posteriors
+and
+priors)}\label{table-11.4-manipulation-check-difference-between-posteriors-and-priors}
+
+\begin{table}[!htbp] \centering 
+  \caption{Manipulation check: Absolute difference between posterior and prior beliefs for pooled good and bad news [unregistered analysis]} 
+  \label{mcheck2} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Absolute difference between posterior and prior beliefs} \\ 
+\cline{2-5} 
+ & Overall & Benin & Brazil & Uganda 2 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.006 & 0.063 & $-$0.003 & $-$0.023 \\ 
+  & (0.025) & (0.089) & (0.022) & (0.023) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Covariates & No & No & No & No \\ 
+Observations & 12,704 & 389 & 1,677 & 10,638 \\ 
+R$^{2}$ & 0.241 & 0.176 & 0.358 & 0.111 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Notes:} The table reports differences between beliefs about politician performance after (MPAP measure M30) and prior to treatment (MPAP measure M9). Posterior beliefs are measured using recollection tests at endline specific to the content of each study's intervention. Burkina Faso is excluded because their recollection measure was collected among treated subjects only. Mexico is excluded from results because the study does not contain pre-treatment measures of subjects beliefs. Uganda 1 is not included because the M30 measure is an aggregate measure of subjects' political knowledge and cannot be directly compared with the scale used for measuring priors. We include randomization block fixed effects. Standard errors are clustered at the level of treatment assignment. $^{*}$p$<$0.05; $^{**}$p$<$0.01; $^{***}$p$<$0.001.\end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 11.5: Effect of information on perception of importance
+of politician effort and
+honesty}\label{table-11.5-effect-of-information-on-perception-of-importance-of-politician-effort-and-honesty}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of information on perception of importance of politician effort and honesty} 
+  \label{effort_honesty} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{Effort}&\multicolumn{2}{c}{Dishonesty} \\ 
+\cline{2-5} 
+ & Good News & Bad News & Good News & Bad News \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Treatment effect & $-$0.014 & $-$0.051 & $-$0.053 & 0.099 \\ 
+  & (0.046) & (0.051) & (0.047) & (0.098) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 2.449 & 2.7 & 2.755 & 2.724 \\ 
+RI $p$-value & 0.788 & 0.474 & 0.356 & 0.754 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.5} & \multicolumn{2}{c}{0.282} \\
+Covariates & No & No & No & No \\ 
+Observations & 7,039 & 5,963 & 7,278 & 6,755 \\ 
+R$^{2}$ & 0.253 & 0.294 & 0.300 & 0.231 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports the effect of the treatment on voters' perception of how hard-working (MPAP measure M5) and dishonest (MPAP measure M6) the incumbent politician is. We pool Benin, Burkina Faso, Uganda 1, and Uganda 2 in columns (1) and (2), and Benin, Burkina Faso, Mexico, and Uganda 2 in columns (3) and (4). MPAP measures M5 (effort) and M6 (dishonesty). Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 11.6: Effect of information and source credibility on
+evaluation of politician effort and
+honesty}\label{table-11.6-effect-of-information-and-source-credibility-on-evaluation-of-politician-effort-and-honesty}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of information and source credibility on evaluation of politician effort and honesty [unregistered analysis]} 
+  \label{effort_honesty_credibility} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-5} 
+& \multicolumn{2}{c}{Effort}&\multicolumn{2}{c}{Dishonesty}\\
+\cline{2-5}
+ & Good News & Bad News & Good News & Bad News \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Treatment & $-$0.034 & $-$0.088 & $-$0.037 & 0.210 \\ 
+  & (0.079) & (0.090) & (0.085) & (0.202) \\ 
+  & & & & \\ 
+ Credible Source & $-$0.051 & $-$0.010 & $-$0.022 & 0.125 \\ 
+  & (0.079) & (0.081) & (0.064) & (0.100) \\ 
+  & & & & \\ 
+ Treatment * Credible Source & 0.033 & 0.070 & 0.010 & $-$0.197 \\ 
+  & (0.095) & (0.105) & (0.093) & (0.205) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 2.451 & 2.703 & 2.75 & 2.679 \\ 
+RI $p$-values & 0.728 & 0.518 & 0.708 & 0.861 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.482} & \multicolumn{2}{c}{0.614} \\
+Covariates & No & No & No & No \\ 
+Observations & 6,436 & 5,406 & 6,483 & 5,844 \\ 
+R$^{2}$ & 0.261 & 0.293 & 0.329 & 0.256 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports the effects of information and the credibility of the information source on voter's perception of how hard-working (MPAP measure M5) and dishonest (MPAP measure M6) the incumbent politician is. We pool Benin, Burkina Faso, Uganda 1, and Uganda 2 in columns (1) and (2), and Benin, Burkina Faso, Mexico, and Uganda 2 in columns (3) and (4). Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 11.7: Relationship between evaluation of politician
+effort and honesty with vote
+choice}\label{table-11.7-relationship-between-evaluation-of-politician-effort-and-honesty-with-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Relationship between evaluation of  politician effort and honesty with vote choice [unregistered analysis]} 
+  \label{m1_effort_honesty} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Incumbent vote choice} \\ 
+\cline{2-5} 
+ & \multicolumn{2}{c}{Good news} & \multicolumn{2}{c}{Bad news} \\ 
+\cline{2-5}
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Effort & 0.052$^{***}$ &  & 0.066$^{***}$ &  \\ 
+  & (0.006) &  & (0.006) &  \\ 
+  & & & & \\ 
+ Dishonesty &  & $-$0.054$^{***}$ &  & $-$0.026$^{***}$ \\ 
+  &  & (0.005) &  & (0.005) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Covariates & No & No & No & No \\ 
+Observations & 11,040 & 11,452 & 10,190 & 10,943 \\ 
+R$^{2}$ & 0.229 & 0.217 & 0.282 & 0.266 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports the effects of information and the credibility of the information source on voter's perception of how hard-working (MPAP measure M5) and dishonest (MPAP measure M6) the incumbent politician is. We pool Benin, Burkina Faso, Uganda 1, and Uganda 2 in columns (1) and (3), and Benin, Burkina Faso, Mexico, and Uganda 2 in columns (2) and (4). Results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 11.8: Effect of bad news on politician
+backlash}\label{table-11.8-effect-of-bad-news-on-politician-backlash}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of bad news on politician backlash} 
+  \label{backlash} 
+\begin{tabular}{@{\extracolsep{1pt}}lccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{3}{c}{Politician response / backlash} \\ 
+\cline{2-4} 
+ & Overall & Benin & Mexico \\ 
+\\[-1.8ex] & (1) & (2) & (3)\\ 
+\hline \\[-1.8ex] 
+ Treatment effect & 0.069$^{*}$ & 0.068 & 0.070$^{***}$ \\ 
+  & (0.028) & (0.057) & (0.010) \\ 
+  & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.108 & 0.068 & 0.146 \\ 
+RI $p$-value & 0.082 & 0.435 & 0 \\ 
+Covariates & No & No & No \\ 
+Observations & 2,052 & 702 & 1,350 \\ 
+R$^{2}$ & 0.623 & 0.504 & 0.848 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports on whether the treatment led to the incumbent party or candidate campaigning on dimensions of the dissemminated information (MPAP measure M8). Backlash was measured for studies with clustered assignment. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 15: Effect of moderators on incumbent vote
+choice}\label{table-15-effect-of-moderators-on-incumbent-vote-choice}
+
+\begin{verbatim}
+## Warning: closing unused connection 70 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 69 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 68 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 67 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 66 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 65 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 64 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 63 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 62 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 61 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 60 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 59 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 58 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 57 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 56 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 55 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 54 (<-localhost:11541)
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: closing unused connection 53 (<-localhost:11541)
+\end{verbatim}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of moderators on incumbent vote choice} 
+  \label{moderators} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{Incumbent vote choice} \\ 
+\cline{2-7} 
+ & Good news & Bad news & Good news & Bad news & Good news & Bad news \\ 
+\cline{2-7}
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.018 & 0.0004 & $-$0.0001 & 0.013 & 0.001 & 0.004 \\ 
+  & (0.015) & (0.022) & (0.025) & (0.021) & (0.014) & (0.016) \\ 
+  Coethnicity & $-$0.022 & 0.0003 &  &  &  &  \\ 
+  & (0.029) & (0.041) &  &  &  &  \\ 
+  Treatment * Coethnicity & 0.058 & $-$0.042 &  &  &  &  \\ 
+  & (0.033) & (0.049) &  &  &  &  \\ 
+  Copartisanship &  &  & 0.216$^{***}$ & 0.289$^{***}$ &  &  \\ 
+  &  &  & (0.032) & (0.028) &  &  \\ 
+  Treatment * Copartisanship &  &  & 0.001 & 0.004 &  &  \\ 
+  &  &  & (0.038) & (0.036) &  &  \\ 
+  Clientelism &  &  &  &  & $-$0.041$^{***}$ & $-$0.044$^{***}$ \\ 
+  &  &  &  &  & (0.009) & (0.011) \\ 
+  Treatment * Clientelism &  &  &  &  & 0.013 & 0.006 \\ 
+  &  &  &  &  & (0.012) & (0.015) \\ 
+ \hline \\[-1.8ex] 
+Control mean & 0.365 & 0.442 & 0.36 & 0.397 & 0.359 & 0.383 \\ 
+RI $p$-values & 0.276 & 0.988 & 0.998 & 0.564 & 0.936 & 0.84 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.618} & \multicolumn{2}{c}{0.829} & \multicolumn{2}{c}{0.876} \\
+Covariates & No & No & No & No & No & No \\ 
+Observations & 11,502 & 10,320 & 11,688 & 10,999 & 13,246 & 12,288 \\ 
+R$^{2}$ & 0.268 & 0.230 & 0.276 & 0.289 & 0.279 & 0.259 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of the treatment on three pre-specified moderators---coethnicity (MPAP measure M15), copartisanship (MPAP measure M19) and indulging in clienetelistic practices (MPAP measure M22)---on incumbent vote choice. The following cases are included in each regression: Co-ethnicity---Benin, Brazil, Uganda 1, Uganda 2; Co-partisanship---Benin, Brazil, Mexico, Uganda 1, Uganda 2; Clientelism---Benin, Burkina Faso, Brazil, Mexico, Uganda 1, Uganda 2. Pooled results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 16: Effect of information and context heterogenity on
+incumbent vote
+choice}\label{table-16-effect-of-information-and-context-heterogenity-on-incumbent-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of information and context heterogenity on incumbent vote choice} 
+  \label{context_hetero} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{Incumbent vote choice} \\ 
+\cline{2-7} 
+ & Good news & Bad news & Good news & Bad news & Good news & Bad news \\ 
+\cline{2-7}
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & $-$0.062 & $-$0.011 & 0.015 & $-$0.005 & $-$0.034 & 0.021 \\ 
+  & (0.055) & (0.054) & (0.024) & (0.030) & (0.035) & (0.033) \\ 
+  Certainty & $-$0.015 & 0.021 &  &  &  &  \\ 
+  & (0.017) & (0.018) &  &  &  &  \\ 
+  Treatment * Certainty & 0.032 & $-$0.003 &  &  &  &  \\ 
+  & (0.024) & (0.024) &  &  &  &  \\ 
+  Secret ballot &  &  & $-$0.001 & 0.010 &  &  \\ 
+  &  &  & (0.008) & (0.010) &  &  \\ 
+  Treatment * Secret ballot &  &  & $-$0.005 & 0.005 &  &  \\ 
+  &  &  & (0.010) & (0.011) &  &  \\ 
+  Free, fair election &  &  &  &  & $-$0.003 & 0.009 \\ 
+  &  &  &  &  & (0.009) & (0.010) \\ 
+  Treatment * Free, fair election &  &  &  &  & 0.013 & $-$0.005 \\ 
+  &  &  &  &  & (0.011) & (0.011) \\ 
+ \hline \\[-1.8ex] 
+Control mean & 0.362 & 0.412 & 0.383 & 0.357 & 0.351 & 0.386 \\ 
+RI $p$-values & 0.296 & 0.856 & 0.559 & 0.889 & 0.348 & 0.524 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.417} & \multicolumn{2}{c}{0.688} & \multicolumn{2}{c}{0.26}\\
+Covariates & No & No & No & No & No & No \\ 
+Observations & 10,993 & 9,622 & 13,419 & 12,589 & 13,199 & 12,490 \\ 
+R$^{2}$ & 0.328 & 0.267 & 0.258 & 0.235 & 0.256 & 0.240 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of whether the treatment had different effects depending on voters' certainty about their priors (MPAP measure M11), and their perceptions about the secrecy of their ballot (MPAP measure M26) and how free and fair the election was (MPAP measure M27). Pooled results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 17: Effect of information and electoral competition on
+vote
+choice}\label{table-17-effect-of-information-and-electoral-competition-on-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of information and electoral competition on vote choice} 
+  \label{competition} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Incumbent vote choice} \\ 
+\cline{2-5} 
+& \multicolumn{2}{c}{Low competition} &\multicolumn{2}{c}{High competition} \\
+\cline{2-5}
+ & Good news & Bad news & Good news & Bad news \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.009 & $-$0.043 & 0.004 & 0.015 \\ 
+  & (0.022) & (0.031) & (0.030) & (0.037) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.342 & 0.414 & 0.392 & 0.294 \\ 
+RI $p$-values & 0.692 & 0.272 & 0.912 & 0.757 \\ 
+Covariates & No & No & No & No \\ 
+Observations & 1,450 & 1,433 & 1,113 & 1,307 \\ 
+R$^{2}$ & 0.221 & 0.231 & 0.240 & 0.128 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of whether the treatment had different effects in constituencies with low or high levels of electoral competition (MPAP measure M25). We pool Benin, Brazil, Mexico, and Uganda 1. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 18: Effect of information and intervention-specific
+heterogenity on vote
+choice}\label{table-18-effect-of-information-and-intervention-specific-heterogenity-on-vote-choice}
+
+\begin{table}[!htbp] \centering  \footnotesize
+  \caption{Effect of information and intervention-specific heterogenity on vote choice} 
+  \label{intervention_hetero} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{Incumbent vote choice} \\ 
+\cline{2-7} 
+ & Good news & Bad news & Good news & Bad news & Good news & Bad news \\ 
+\cline{2-7}
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.001 & $-$0.010 & 0.025 & $-$0.022 & $-$0.017 & $-$0.013 \\ 
+  & (0.016) & (0.016) & (0.024) & (0.036) & (0.021) & (0.023) \\ 
+  & & & & & & \\ 
+ N$_{ij}$ & $-$0.027 & $-$0.053$^{***}$ &  &  &  &  \\ 
+  & (0.016) & (0.014) &  &  &  &  \\ 
+  & & & & & & \\ 
+ Treatment * N$_{ij}$ & $-$0.006 & $-$0.006 &  &  &  &  \\ 
+  & (0.020) & (0.019) &  &  &  &  \\ 
+  & & & & & & \\ 
+ Information salient &  &  & $-$0.016 & $-$0.041 &  &  \\ 
+  &  &  & (0.029) & (0.035) &  &  \\ 
+  & & & & & & \\ 
+ Treatment * Information salient &  &  & $-$0.015 & 0.053 &  &  \\ 
+  &  &  & (0.034) & (0.042) &  &  \\ 
+  & & & & & & \\ 
+ Credible source &  &  &  &  & $-$0.007 & 0.005 \\ 
+  &  &  &  &  & (0.028) & (0.027) \\ 
+  & & & & & & \\ 
+ Treatment * Credible source &  &  &  &  & 0.036 & 0.020 \\ 
+  &  &  &  &  & (0.030) & (0.031) \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.356 & 0.398 & 0.355 & 0.435 & 0.363 & 0.385 \\ 
+RI $p$-values & 0.955 & 0.596 & 0.314 & 0.62 & 0.438 & 0.646 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.783} & \multicolumn{2}{c}{0.235} & \multicolumn{2}{c}{0.352} \\
+Covariates & No & No & No & No & No & No \\ 
+Observations & 13,274 & 12,563 & 12,343 & 10,587 & 12,354 & 11,407 \\ 
+R$^{2}$ & 0.275 & 0.249 & 0.265 & 0.221 & 0.260 & 0.240 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of the effect of information and (a) the gap between priors and information (MPAP measure $N_{ij}$), (b) salience of information (MPAP measure M23) and (c) credibility of information source on voters' decision to vote for the incumbent. Columns 1, 3, 4 and 6 pool observations from all studies while Columns 2 and 5 pool Benin, Brazil, Uganda 1 and Uganda 2. Results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study. Regressions include randomization block fixed effects; standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 19: Interaction analysis: Effect of good news on
+incumbent vote
+choice}\label{table-19-interaction-analysis-effect-of-good-news-on-incumbent-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Interaction analysis: Effect of good news on incumbent vote choice} 
+  \label{Interaction_good} 
+\begin{tabular}{@{\extracolsep{1pt}}lccccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{7}{c}{Incumbent vote choice, good news} \\ 
+\cline{2-8} 
+ & ALL & BEN & BRZ & BF & MEX & UG 1 & UG 2 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6) & (7)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.0004 & $-$0.005 & 0.007 & 0.004 & $-$0.036 & 0.048 & 0.009 \\ 
+  & (0.015) & (0.066) & (0.030) & (0.049) & (0.031) & (0.033) & (0.012) \\ 
+  $N_{ij}$ & $-$0.017 & $-$0.009 &  & $-$0.016 &  & $-$0.052$^{**}$ & $-$0.010 \\ 
+  & (0.015) & (0.058) & (0.000) & (0.039) & (0.000) & (0.018) & (0.009) \\ 
+  Treatment * $N_{ij}$ & 0.00004 & 0.115 & $-$0.026 & $-$0.028 & 0.034 & $-$0.025 & $-$0.003 \\ 
+  & (0.008) & (0.082) & (0.023) & (0.056) & (0.018) & (0.013) & (0.006) \\ 
+  Age & $-$0.0005 & $-$0.008 & 0.001 & 0.002 & $-$0.003 & 0.003$^{*}$ & 0.002$^{**}$ \\ 
+  & (0.001) & (0.005) & (0.002) & (0.003) & (0.002) & (0.002) & (0.001) \\ 
+  Treatment * Age & $-$0.007 & $-$0.070 & $-$0.060$^{*}$ & $-$0.083$^{*}$ & 0.054$^{**}$ & $-$0.009 & 0.004 \\ 
+  & (0.009) & (0.056) & (0.024) & (0.037) & (0.020) & (0.015) & (0.006) \\ 
+  Education & $-$0.002 & $-$0.007 & 0.010 & 0.002 & $-$0.003 & $-$0.011 & $-$0.002 \\ 
+  & (0.003) & (0.009) & (0.007) & (0.020) & (0.008) & (0.007) & (0.003) \\ 
+  Treatment * Education & $-$0.010 & $-$0.030 &  & $-$0.018 &  & 0.035 & $-$0.013 \\ 
+  & (0.019) & (0.062) & (0.000) & (0.050) & (0.000) & (0.027) & (0.012) \\ 
+  Wealth & 0.024 & 0.071 & 0.061 & $-$0.007 & 0.033 & 0.041 & 0.016 \\ 
+  & (0.013) & (0.051) & (0.039) & (0.039) & (0.034) & (0.027) & (0.009) \\ 
+  Treatment * Wealth & 0.001 & 0.013 & $-$0.004 & 0.001 & 0.004 & $-$0.005$^{*}$ & 0.0004 \\ 
+  & (0.001) & (0.007) & (0.003) & (0.005) & (0.003) & (0.002) & (0.001) \\ 
+  Voted previously & 0.052 & $-$0.037 & 0.073 & 0.096 & 0.185$^{***}$ & $-$0.157$^{**}$ & 0.057$^{*}$ \\ 
+  & (0.027) & (0.066) & (0.079) & (0.085) & (0.048) & (0.057) & (0.025) \\ 
+  Treatment * Voted previously & 0.007 & 0.022 & $-$0.010 & $-$0.033 & 0.009 & 0.019$^{*}$ & $-$0.003 \\ 
+  & (0.004) & (0.016) & (0.008) & (0.026) & (0.010) & (0.009) & (0.003) \\ 
+  Supported incumbent & 0.196$^{***}$ & 0.013 & 0.293$^{***}$ & 0.242 & 0.308$^{***}$ & 0.178$^{**}$ & 0.111$^{***}$ \\ 
+  & (0.029) & (0.105) & (0.058) & (0.147) & (0.049) & (0.055) & (0.024) \\ 
+  Treatment * Supported incumbent & $-$0.042$^{*}$ & $-$0.156 & 0.030 & 0.036 & $-$0.079 & $-$0.129$^{**}$ & 0.003 \\ 
+  & (0.018) & (0.084) & (0.052) & (0.052) & (0.046) & (0.041) & (0.012) \\ 
+  Clientelism & $-$0.039$^{***}$ & $-$0.073 & $-$0.073$^{***}$ & 0.007 & $-$0.054$^{*}$ & $-$0.019 & $-$0.006 \\ 
+  & (0.010) & (0.067) & (0.021) & (0.086) & (0.026) & (0.018) & (0.006) \\ 
+  Treatment * Clientelism & $-$0.030 & 0.110 & 0.085 & $-$0.053 & $-$0.156$^{*}$ & 0.026 & 0.041 \\ 
+  & (0.039) & (0.127) & (0.110) & (0.125) & (0.071) & (0.086) & (0.034) \\ 
+  Credible source & $-$0.022 & $-$0.142 & 0.025 & $-$0.089 & $-$0.008 & $-$0.052 & $-$0.0001 \\ 
+  & (0.033) & (0.169) & (0.112) & (0.081) & (0.065) & (0.049) & (0.032) \\ 
+  Treatment * Credible source & $-$0.034 & $-$0.141 & 0.092 & $-$0.006 & 0.112 & $-$0.109 & $-$0.002 \\ 
+  & (0.041) & (0.109) & (0.073) & (0.197) & (0.093) & (0.075) & (0.033) \\ 
+  Secret ballot & 0.015 & 0.116 & $-$0.016 & 0.100 & 0.042 & 0.009 & 0.007 \\ 
+  & (0.013) & (0.100) & (0.027) & (0.123) & (0.035) & (0.023) & (0.009) \\ 
+  Treatment * Secret ballot & 0.058 & 0.296 & $-$0.042 & 0.052 & 0.120 & 0.074 & 0.011 \\ 
+  & (0.044) & (0.244) & (0.137) & (0.124) & (0.086) & (0.068) & (0.043) \\ 
+  Free, fair election & $-$0.002 & $-$0.099 & 0.012 & 0.003 & $-$0.036 & 0.040$^{*}$ & $-$0.004 \\ 
+  & (0.011) & (0.090) & (0.031) & (0.076) & (0.028) & (0.019) & (0.008) \\ 
+  Treatment * free, fair election & 0.022 & 0.045 & 0.020 & 0.117$^{*}$ & $-$0.016 & 0.030 & 0.008 \\ 
+  & (0.012) & (0.067) & (0.026) & (0.050) & (0.032) & (0.022) & (0.008) \\ 
+ \hline \\[-1.8ex] 
+Covariates & Yes & Yes & Yes & Yes & Yes & Yes & Yes \\ 
+Observations & 13,196 & 220 & 859 & 389 & 725 & 456 & 10,547 \\ 
+R$^{2}$ & 0.299 & 0.348 & 0.484 & 0.392 & 0.224 & 0.177 & 0.240 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+
+\clearpage
+
+\section{Table 20: Interaction analysis: Effect of bad news on incumbent
+vote
+choice}\label{table-20-interaction-analysis-effect-of-bad-news-on-incumbent-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Interaction analysis: Effect of bad news on incumbent vote choice} 
+  \label{Interaction_bad} 
+\begin{tabular}{@{\extracolsep{1pt}}lccccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{7}{c}{Incumbent vote choice, bad news} \\ 
+\cline{2-8} 
+ & ALL & BEN & BRZ & BF & MEX & UG 1 & UG 2 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6) & (7)\\ 
+\hline \\[-1.8ex] 
+ Treatment & $-$0.003 & $-$0.080 & $-$0.022 & 0.037 & $-$0.013 & 0.010 & $-$0.006 \\ 
+  & (0.015) & (0.087) & (0.030) & (0.028) & (0.018) & (0.053) & (0.012) \\ 
+  $N_{ij}$ & $-$0.049$^{***}$ & $-$0.090 & $-$0.100$^{***}$ & $-$0.005 &  & $-$0.036 & $-$0.002 \\ 
+  & (0.014) & (0.046) & (0.028) & (0.026) & (0.000) & (0.036) & (0.009) \\ 
+  Treatment * $N_{ij}$ & $-$0.001 & $-$0.139 & $-$0.004 & 0.018 & 0.047$^{***}$ & $-$0.015 & $-$0.002 \\ 
+  & (0.011) & (0.090) & (0.021) & (0.033) & (0.013) & (0.028) & (0.006) \\ 
+  Age & 0.0004 & $-$0.004 & 0.00003 & 0.002 & 0.0003 & 0.002 & 0.001 \\ 
+  & (0.001) & (0.004) & (0.002) & (0.002) & (0.001) & (0.003) & (0.001) \\ 
+  Treatment * Age & 0.008 & 0.052 & 0.001 & $-$0.030 & 0.012 & 0.019 & $-$0.003 \\ 
+  & (0.016) & (0.085) & (0.026) & (0.020) & (0.013) & (0.032) & (0.007) \\ 
+  Education & $-$0.003 & $-$0.006 & $-$0.001 & $-$0.006 & $-$0.010$^{*}$ & 0.0004 & $-$0.003 \\ 
+  & (0.003) & (0.009) & (0.005) & (0.008) & (0.004) & (0.012) & (0.003) \\ 
+  Treatment * Education & $-$0.001 & 0.118 & $-$0.063 & $-$0.004 &  & $-$0.002 & $-$0.003 \\ 
+  & (0.019) & (0.079) & (0.034) & (0.031) & (0.000) & (0.053) & (0.012) \\ 
+  Wealth & 0.036$^{*}$ & 0.020 & 0.012 & 0.001 & 0.037 & 0.089 & 0.013 \\ 
+  & (0.015) & (0.084) & (0.041) & (0.023) & (0.020) & (0.045) & (0.009) \\ 
+  Treatment * Wealth & $-$0.00005 & 0.004 & $-$0.001 & 0.001 & 0.0002 & $-$0.001 & $-$0.001 \\ 
+  & (0.001) & (0.007) & (0.002) & (0.002) & (0.001) & (0.004) & (0.001) \\ 
+  Voted previously & 0.036 & 0.044 & $-$0.053 & 0.083 & 0.123$^{**}$ & $-$0.138 & 0.075$^{*}$ \\ 
+  & (0.037) & (0.282) & (0.089) & (0.047) & (0.038) & (0.103) & (0.029) \\ 
+  Treatment * Voted previously & 0.001 & $-$0.009 & 0.006 & 0.006 & $-$0.005 & $-$0.003 & 0.002 \\ 
+  & (0.005) & (0.017) & (0.007) & (0.012) & (0.006) & (0.017) & (0.004) \\ 
+  Supported incumbent & 0.190$^{***}$ & $-$0.013 & 0.282$^{***}$ & 0.249$^{***}$ & 0.465$^{***}$ & 0.204$^{*}$ & 0.065$^{*}$ \\ 
+  & (0.046) & (0.146) & (0.049) & (0.067) & (0.035) & (0.090) & (0.030) \\ 
+  Treatment * Supported incumbent & $-$0.025 & 0.009 & 0.027 & $-$0.018 & 0.015 & $-$0.105 & $-$0.024 \\ 
+  & (0.019) & (0.099) & (0.054) & (0.031) & (0.033) & (0.061) & (0.012) \\ 
+  Clientelism & $-$0.032$^{**}$ & $-$0.017 & $-$0.086$^{***}$ & 0.019 & $-$0.012 & $-$0.020 & 0.005 \\ 
+  & (0.010) & (0.133) & (0.019) & (0.055) & (0.016) & (0.026) & (0.007) \\ 
+  Treatment * Clientelism & $-$0.023 & $-$0.256 & 0.186 & $-$0.042 & 0.030 & $-$0.094 & 0.027 \\ 
+  & (0.046) & (0.314) & (0.105) & (0.066) & (0.052) & (0.145) & (0.041) \\ 
+  Credible source & $-$0.013 & $-$0.047 & 0.015 & $-$0.042 & 0.027 & $-$0.025 & 0.002 \\ 
+  & (0.034) & (0.207) & (0.075) & (0.051) & (0.040) & (0.083) & (0.036) \\ 
+  Treatment * Credible source & 0.016 & $-$0.052 & $-$0.052 & 0.133 & $-$0.090 & 0.073 & 0.011 \\ 
+  & (0.054) & (0.244) & (0.068) & (0.086) & (0.058) & (0.116) & (0.042) \\ 
+  Secret ballot & $-$0.007 & $-$0.034 & 0.026 & 0.027 & $-$0.056$^{*}$ & $-$0.013 & $-$0.007 \\ 
+  & (0.014) & (0.139) & (0.025) & (0.076) & (0.023) & (0.037) & (0.009) \\ 
+  Treatment * Secret ballot & 0.050 & 0.300 & 0.029 & 0.095 & 0.012 & $-$0.015 & 0.056 \\ 
+  & (0.047) & (0.484) & (0.114) & (0.081) & (0.056) & (0.115) & (0.051) \\ 
+  Free, fair election & 0.016 & 0.054 & 0.043 & 0.013 & $-$0.033 & 0.033 & $-$0.003 \\ 
+  & (0.014) & (0.173) & (0.027) & (0.043) & (0.018) & (0.037) & (0.009) \\ 
+  Treatment * free, fair election & $-$0.008 & 0.071 & $-$0.018 & 0.003 & $-$0.015 & $-$0.039 & 0.010 \\ 
+  & (0.018) & (0.116) & (0.029) & (0.029) & (0.024) & (0.045) & (0.010) \\ 
+ \hline \\[-1.8ex] 
+Covariates & Yes & Yes & Yes & Yes & Yes & Yes & Yes \\ 
+Observations & 12,531 & 181 & 818 & 911 & 1,215 & 294 & 9,112 \\ 
+R$^{2}$ & 0.281 & 0.312 & 0.420 & 0.311 & 0.296 & 0.208 & 0.278 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+
+\clearpage
+
+\section{Table 21: Private vs Public Information: Effect of good news on
+incumbent vote
+choice}\label{table-21-private-vs-public-information-effect-of-good-news-on-incumbent-vote-choice}
+
+\begin{table}[htb] \centering 
+  \caption{Private vs Public Information: Effect of good news on incumbent vote choice} 
+  \label{pvt_pub_good} 
+\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Incumbent vote choice, good news} \\ 
+\cline{2-5} 
+ & Overall & Benin & Mexico & Uganda 1 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Private information & $-$0.008 & 0.012 & $-$0.029 & 0.008 \\ 
+  & (0.023) & (0.044) & (0.043) & (0.027) \\ 
+  & & & & \\ 
+ Public information & 0.055$^{*}$ & 0.146$^{**}$ & $-$0.002 & 0.019 \\ 
+  & (0.022) & (0.047) & (0.041) & (0.023) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.356 & 0.439 & 0.498 & 0.186 \\ 
+F-test $p$-value & 0.018 & 0.006 & 0.598 & 0.708 \\ 
+Covariates & No & No & No & No \\ 
+Observations & 2,962 & 776 & 784 & 1,402 \\ 
+R$^{2}$ & 0.192 & 0.189 & 0.088 & 0.068 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of the effect of good news about the incumbent on vote choice, depending on whether voters received this information in private or public settings. We pool Benin, Mexico, and Uganda 1. Regressions include randomization block fixed effects and standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+\clearpage
+
+\section{Table 22: Private vs Public Information: Effect of bad news on
+incumbent vote
+choice}\label{table-22-private-vs-public-information-effect-of-bad-news-on-incumbent-vote-choice}
+
+\begin{table}[!htbp] \centering 
+  \caption{Private vs Public Information: Effect of bad news on incumbent vote choice} 
+  \label{pvt_pub_bad} 
+\begin{tabular}{@{\extracolsep{5pt}}lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{4}{c}{Incumbent vote choice, bad news} \\ 
+\cline{2-5} 
+ & Overall & Benin & Mexico & Uganda 1 \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
+\hline \\[-1.8ex] 
+ Private information & $-$0.027 & $-$0.012 & $-$0.036 & $-$0.035 \\ 
+  & (0.030) & (0.074) & (0.030) & (0.042) \\ 
+  & & & & \\ 
+ Public information & 0.009 & 0.006 & 0.015 & 0.009 \\ 
+  & (0.026) & (0.069) & (0.032) & (0.032) \\ 
+  & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.441 & 0.535 & 0.383 & 0.426 \\ 
+F-test $p$-value & 0.018 & 0.006 & 0.598 & 0.708 \\ 
+Covariates & No & No & No & No \\ 
+Observations & 2,909 & 601 & 1,309 & 999 \\ 
+R$^{2}$ & 0.178 & 0.241 & 0.102 & 0.153 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:} The table reports results of the effect of bad news about the incumbent on vote choice, depending on whether voters received this information in private or public settings. We pool Benin, Mexico, and Uganda 1. Regressions include randomization block fixed effects and standard errors are clustered at the level of treatment assignment. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table}
+
+
+\end{document}

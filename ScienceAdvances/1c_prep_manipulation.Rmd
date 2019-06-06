@@ -1,0 +1,122 @@
+---
+title: "Code correct recollection"
+author: "mk1"
+date: "3/17/2018"
+output: html_document
+---
+
+```{r, include=FALSE}
+# Load clean data
+
+# files <- list.files("data/temp", pattern = "covinter_clean", full.names = TRUE)
+# for (f in files) {
+#   load(f)
+# }
+
+```
+
+# `correct`: dichotomous indicator for correct recall of Q
+
+# Uganda 2
+m30 is in the same scale as information given (`budget.actual`). "Don't know" answers are coded as 3 in line with Uganda 2 study.
+
+```{r}
+ug2$correct <- ifelse(ug2$m30==ug2$Q, 1,0)
+ug2$post.prior.diff <- ug2$m30 - ug2$P
+# ug2$post.prior.diff <- ifelse(ug2$N_good == 0, -ug2$post.prior.diff, ug2$post.prior.diff)
+```
+
+# Brazil:
+m30 is already defined as whether posterior aligns with Q (information) (see 1a_prepdata.R). Difference between posterior and prior needs to be inverted so that positive differences means update toward better performance (m9-prior and m30 are both coded as 0 if account accepted and 1 if rejected).
+
+```{r}
+brz$correct <- brz$m30
+brz$post.prior.diff <- brz$m9 - brz$m30 #inverted difference, see note above.
+# brz$post.prior.diff <- ifelse(brz$N_good == 0, -brz$post.prior.diff, brz$post.prior.diff)
+```
+
+# Burkina
+Recollection/attention check was administered to control only.
+
+# Mexico:
+Use existing m30 variable. The difference between posteriors and priors cannot be measured within subject due to lack of survey data administered pre-treatment.
+
+```{r}
+mexsur$correct <- mexsur$m30
+```
+
+# Benin
+m30 scale (decreasing with quality) is inverted to match that of Q (increasing quality).
+```{r}
+ben$correct <- ifelse((5-ben$m30)==ben$Q,1,0)
+ben$post.prior.diff <- (5-ben$m30) - ben$P
+# ben$post.prior.diff <- ifelse(ben$N_good == 0, -ben$post.prior.diff, ben$post.prior.diff)
+```
+
+# Uganda 1
+measure of m30 (SEE CONSTRUCTION OF MEASURE OF polknow_e BELOW) is substantively different from Q. See below. Difference between posteriors and priors here is coded directly from the measure of political knowledge (m30).
+
+```{r}
+# REVIEW
+# STATA CODE
+# *candsknown
+# gen numcands_const = .
+# replace numcands_const = 6 if code==18|code==16
+# replace numcands_const = 5 if code==14
+# replace numcands_const = 9 if code==19
+# la var numcands_const "Number of candidates in constituency"
+# 
+# egen numcandsknown_e = total(heardofcand_e), by(id)
+# tab numcandsknown_e
+# replace numcandsknown_e = . if core==.
+# la var numcandsknown_e "Number of candidates named by respondent, EL"
+# gen sharecandsknown_e = numcandsknown_e / numcands_const
+# tab sharecandsknown_e, mi
+# la var sharecandsknown_e "Share of primary candidates known, EL"
+# 
+# gen sectorcorrectshr_e = numsectorcorrect_e / numcands_const
+# la var sectorcorrectshr_e "Share of known cand priority sectors, EL"
+# 
+# *Melina: note that BL measure is not comparable to EL measure since we changed T/F questions at EL (no variation in most T/F)
+# egen mpresp_e = rowtotal (correct1 correct2 correct3 correct4 correct5 correct6)
+# la var  mpresp_e "Know: Roles of MPs, EL"
+# replace mpresp_e = . if core== .
+# tab mpresp_e
+# drop correct1 - correct6
+# 
+# *Melina: Rescale such that variable is between 0 and 1. Min possible: -3. Max possible: +6
+# gen mpresp_std_e = (mpresp_e - (-3)) / (6-(-3))
+# tab mpresp_std_e 
+# 
+# *candsectorknow: Share of candidates for which a respondent can correctly name their priority sector. 
+# tab sector_e
+# tab priority_c
+# destring priority_c, replace
+# gen sectorcorrect_e = 0
+# replace sectorcorrect_e = 1 if priority_c == sector_e
+# replace sectorcorrect_e = . if priority_c == . | priority_c == .d | priority_c == .r | sector_e == . | sector_e == .d | sector_e == .r |sector_e==-88
+# la var sectorcorrect_e "Knows candidate's priority sector, EL"
+# 
+# egen numsectorcorrect_e = total(sectorcorrect_e), by(id)
+# replace numsectorcorrect_e = . if core_e == .
+# 
+# tab numsectorcorrect_e if uniqueid == 1
+# la var numsectorcorrect_e "Number of cand priority sector correctly named by resp, EL"
+# replace numsectorcorrect_e = . if core_e == .
+# 
+# gen sectorcorrectshr_e = numsectorcorrect_e / numcands_const
+# la var sectorcorrectshr_e "Share of known cand priority sectors, EL"
+#
+# *Composite knowledge 
+# gen polknow_e = sectorcorrectshr_e + mpresp_std_e + sharecandsknown_e
+# tab polknow_e if uniqueid==1, mi
+# la var polknow_e  "Political knowledge, EL"
+
+# Generate dichotomous variable for correct recollection in Uganda
+# for values above and below the mean of the political knowledge scale (1.5)
+ug1$correct <- ifelse(ug1$m30 >= 1.5, 1, 0)
+# ug1$post.prior.diff <- ug1$m30
+save(ug1, file="data/temp/ug1_covinter_clean.Rda")
+
+```
+

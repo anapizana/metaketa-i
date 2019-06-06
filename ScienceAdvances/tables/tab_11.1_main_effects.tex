@@ -1,0 +1,33 @@
+
+\begin{table}[!htbp] \centering 
+  \caption{Effect of Information, Conditional on Distance between Information and Priors, on Vote Choice and Turnout} 
+  \label{main_results} 
+\begin{tabular}{@{\extracolsep{1pt}}lcccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{Vote Choice}&\multicolumn{2}{c}{Turnout}& Vote Choice & Turnout \\ 
+\cline{2-7} 
+ & Good News & Bad News & Good News & Bad News & \multicolumn{2}{c}{Overall} \\ 
+\\[-1.8ex] & (1) & (2) & (3) & (4) & (5) & (6)\\ 
+\hline \\[-1.8ex] 
+ Treatment & 0.0004 & $-$0.003 & 0.002 & 0.018 & 0.003 & 0.017$^{*}$ \\ 
+  & (0.015) & (0.015) & (0.013) & (0.012) & (0.010) & (0.008) \\ 
+  & & & & & & \\ 
+ N$_{ij}$ & $-$0.017 & $-$0.049$^{***}$ & $-$0.0003 & 0.011 & $-$0.050$^{***}$ & 0.009 \\ 
+  & (0.015) & (0.014) & (0.014) & (0.013) & (0.012) & (0.011) \\ 
+  & & & & & & \\ 
+ Treatment * N$_{ij}$ & $-$0.010 & $-$0.001 & 0.001 & $-$0.0001 & $-$0.002 & $-$0.002 \\ 
+  & (0.019) & (0.019) & (0.019) & (0.015) & (0.012) & (0.011) \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Control mean & 0.356 & 0.398 & 0.843 & 0.835 & 0.369 & 0.837 \\ 
+RI $p$-value & 0.981 & 0.866 & 0.892 & 0.167 & 0.813 & 0.062 \\ 
+Joint RI $p$-value & \multicolumn{2}{c}{0.954} & \multicolumn{2}{c}{0.29} \\
+Covariates & Yes & Yes & Yes & Yes & Yes & Yes \\ 
+Observations & 13,196 & 12,531 & 14,500 & 13,148 & 25,820 & 27,737 \\ 
+R$^{2}$ & 0.299 & 0.281 & 0.200 & 0.160 & 0.274 & 0.165 \\ 
+\hline 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\begin{flushleft}\textit{Note:}  Columns 1-4 estimate equations (\ref{metaeq.main1a}) and (\ref{metaeq.main1b}), while columns 5-6 estimate equation (\ref{metaeq.main3}).  ``Vote choice'' indicates support for the incumbent candidate or party. Standard errors are clustered at the level of treatment assignment. Pooled results exclude non-contested seats and include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. We include randomization block fixed effects and a full set of covariate-treatment interactions. Control mean is the weighted and unadjusted average in the control group. $^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ \end{flushleft}
+\end{table} 

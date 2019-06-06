@@ -1,0 +1,917 @@
+---
+title: "Replication code of Supplementary Information for 'Voter information campaigns and political accountability: Cumulative findings from a preregistered
+meta-analysis of coordinated trials'"
+date: February 22, 2019
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_crop: yes
+    toc: true # table of content true
+    toc_depth: 3
+    keep_tex: yes
+    number_sections: yes
+  word_document: default
+header-includes:
+- \usepackage{caption,tikz}
+- \captionsetup{width=5in}
+- \usepackage{graphicx}
+abstract: ""
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=F}
+
+rm(list = ls())
+
+# packages
+
+pks <- c("readstata13","reshape","dotwhisker", "MASS","plyr","dplyr","foreign",
+         "tidyverse","lfe","stargazer","clubSandwich", "randomizr",
+         "haven","rstudioapi", "stringr", "ri", "car", "xtable", "xlsx", "rmarkdown", "dplyr", 
+         "iterators", "parallel")
+
+invisible(lapply(pks, function(x) if (!require(x, character.only=T)){install.packages(x, repos = "http://cran.us.r-project.org");library(x, character.only = T)}))
+
+# knitr options
+require(knitr)
+opts_knit$set(warning = FALSE, message = FALSE)
+options(knitr.duplicate.label = 'allow')
+options(xtable.comment = FALSE)
+
+# create output folders
+if(!"figures"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "figures"))
+if(!"tables"%in%dir(file.path(getwd()))) dir.create(file.path(getwd(), "tables"))
+```
+
+```{r, include=FALSE}
+# SET REPLICATION OPTIONS
+  # RI p-values could be generated from scratch, "generate", "load" from file, or "ignore"
+  ri_action <- "generate"
+  #number of RI permutations; 10 for trial runs; >2000 for real runs (slow)
+  n_iter <- 2000
+  # load existing permutation matrices for the RITE analysis
+  load_iter_matrix <- TRUE
+  # run bayesian analysis (requires Rstan installation)
+  run_bayes <- FALSE
+  # Code m1 = 0 for cases with m1 = NA and m3 = 0
+  full_m1 <- TRUE
+  #Show source code in compiled file
+  show_code = FALSE
+  #Compile PDF
+  compile_pdf <- TRUE
+```
+
+```{r, include=F}
+# load functions
+source("0a_functions_main.R")
+if(run_bayes) source("0b_functions_bayes.R")
+```
+
+```{r dataprep, echo = F, warning=F, message=F}
+
+load("data/temp/madat.Rda")
+load("data/temp/madat_iter.Rda")
+
+# replaces N_good measure with alternative meaure of good news for Uganda1
+# madat_iter$N_good[madat_iter$ctry=="ug1"] <- 1*(madat_iter$N_alt[madat_iter$ctry=="ug1"]>0)
+```
+
+# Table 2: Descriptive statistics for sample of good news
+
+```{r, echo=FALSE, results="asis"}
+
+  sum_tab <- madat %>% 
+  select(ctry, treat, N, N_good, m1, m3, m5, m6, m8, m14, m15, m17, m18, m19, m20, m21, m22, m24, m26, m27) %>%
+  # group_by(ctry) %>%
+  # mutate_at(c("N","m5", "m6", "m8","m14", "m17", "m18", "m20", "m21", "m22", "m24", "m26", "m27"),
+              # function(x) x - mean(x, na.rm = T)) %>%
+  # ungroup() %>%
+  as.data.frame() %>%
+  reshape::rename(c(treat = "Treatment",
+                    N = "Nij",
+                    m1 = "Incumbent vote choice",
+                    m3 = "Voter turnout",
+                    m5 = "Effort", 
+                    m6 = "Dishonesty", 
+                    m8 = "Backlash", 
+                    m14 = "Age", 
+                    m15 = "Co-ethnicity", 
+                    m17 = "Education", 
+                    m18 = "Wealth", 
+                    m19 = "Co-Partisanship", 
+                    m20 = "Voted in past election", 
+                    m21 = "Voted incumbent past election", 
+                    m22 = "Clientelism", 
+                    m23 = "Salience of information", 
+                    m24 = "Credibility of information", 
+                    m26 = "Secret ballot", 
+                    m27 = "Free and fair elections"))
+
+sum_tab_g <- sum_tab %>% subset(N_good == 1) %>% select(-N_good, -ctry) %>% 
+  format_output(., title = "Descriptive statistics for sample of good news", omit.summary.stat = c("p25", "p75")) %>%
+  {
+  writeLines(., file("tables/tab_A11.1_sumstats_good.tex"))
+  }
+
+close(file("tables/tab_A11.1_sumstats_good.tex"))
+
+sum_tab_b <- sum_tab %>% subset(N_good == 0) %>% select(-N_good, -ctry) %>% 
+  format_output(.,title = "Descriptive statistics for sample of bad news", omit.summary.stat = c("p25", "p75")) %>%
+  {
+  writeLines(., file("tables/tab_A11.1_sumstats_bad.tex"))
+  }
+  
+close(file("tables/tab_A11.1_sumstats_bad.tex"))
+
+cat(readLines('tables/tab_A11.1_sumstats_good.tex'), sep = '\n')
+```
+
+# Table 3: Descriptive statistics for sample of bad news
+
+```{r, results = "asis"}
+cat(readLines('tables/tab_A11.1_sumstats_bad.tex'), sep = '\n')
+```
+
+\clearpage
+
+# Table 4: Balance of covariates
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+madat$inv_wt <- NA
+madat$inv_wt[madat$ctry == "brz"] <- madat$inv_wts[madat$ctry == "brz"]
+madat$inv_wt[madat$ctry == "ug2"] <- madat$inv_wts2[madat$ctry == "ug2"]
+madat$inv_wt[!madat$ctry %in% c("brz", "ug2") ] <- 1/.5 # assignment probability = .5 for all countries other than brazil and uganda 2
+
+```
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, results = 'asis'}
+filename <- "tables/tab_A_balance_meta.tex"
+balance_tab <- format_balance(make_balance_tab(madat))
+writeLines(c(balance_tab[1], "\\caption{Balance of covariates}", balance_tab[2], 
+               "\\footnotesize", balance_tab[3:length(balance_tab)]), file(filename)); close(file(filename))
+cat(readLines(filename), sep = "\n")
+```
+
+\clearpage
+
+# Figure 6: Power Analysis
+
+```{r mde, include=F, eval=FALSE, cache=TRUE}
+rmarkdown::render("fig_MDE_with_controls.Rmd")
+```
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Minimal detectable effects: Power analysis of minimal detectable effects, computed using Monte Carlo simulation. The horizontal axis varies the conjectured average treatment effect, while the vertical axis shows statistical power: the probability of rejecting the null hypothesis at $\\alpha=0.05$."), echo=FALSE, eval = FALSE}
+  mde_plot(all_diagnoses[[1]], main = "(a) Vote for incumbent, good news")
+  mde_plot(all_diagnoses[[2]], main = "(b) Vote for incumbent, bad news")
+  mde_plot(all_diagnoses[[3]], main = "(c) Turnout, good news")
+  mde_plot(all_diagnoses[[4]], main = "(d) Turnout, bad news")
+```
+
+```{r, include=FALSE}
+  gc()
+```
+
+# Table 5: Effect of Information
+
+```{r, echo=show_code, cache=TRUE}
+# Treatment effects with nij and covariates
+cov <- "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"
+
+# vote choice
+# good news
+t1ncovc2 <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action,
+                    file_rite_obj = "data/temp/ri_m1pool_all_g_cov.Rda",
+                    cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", exclude_councilors = FALSE)
+# bad news
+t2ncovc2 <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action,
+                    file_rite_obj = "data/temp/ri_m1pool_all_b_cov.Rda",
+                    cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", exclude_councilors = FALSE)
+
+# turnout
+#good news
+t3ncovc2 <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action,
+                    file_rite_obj = "data/temp/ri_m3pool_all_g_cov.Rda",
+                    cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m3", exclude_councilors = FALSE)
+# bad news
+t4ncovc2 <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action, 
+                    file_rite_obj = "data/temp/ri_m3pool_all_b_cov.Rda",
+                    cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m3", exclude_councilors = FALSE)
+
+# vote choice overall
+t_m1_o <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_all_o_cov.Rda",
+                  cov = cov, with_N = TRUE, depvar = "m1", exclude_councilors =FALSE)
+
+# turnout overall
+t_m3_o <- results(dat = madat_iter, sims = n_iter, ri_p = ri_action, file_rite_obj = "data/temp/ri_m3pool_all_o_cov.Rda",
+                  cov = cov, with_N = TRUE, depvar = "m3", exclude_councilors =FALSE)
+
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab1_main_effects.R")
+  cat(readLines('tables/tab_11.1_main_effects.tex'), sep = '\n')
+```
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+  createt11.1("html")
+```
+
+\clearpage
+
+# Table 7: Differential attrition
+
+```{r, echo=FALSE, results= 'asis'}
+get_attrition <- function(df = madat, y = "m1", country = NULL){
+  meta <- TRUE
+  if(!is.null(country)){df <- df[df$ctry == country,]; meta <- FALSE}
+  df <- reweight(df, meta = meta)
+  df$missing <- is.na(df[,y])
+  
+  mod <- felm(missing ~ treat|fe|0|cl, data = df, weights = df$wt)
+
+  covs <- df %>% select(P, N_good, m13, m14, m15, m17, m18,
+         m19, m20, m21, m22, m23, m24) %>% names()
+  
+  form <- paste0("missing ~ ",
+               paste(paste0(covs, "*treat"), collapse = " + "),
+               "|fe|0|cl") %>% as.formula()
+  
+  mod2 <- felm(form, data = df, weights = df$wt)
+  f <- linearHypothesis(mod2, c("P:treat = 0", paste0("treat:", covs[-1], " = 0")))
+  Fstat <- f$Chisq[2] %>% round(.,2)
+  Pr_F <- f$`Pr(>Chisq)`[2] %>% round(.,2)
+  table <- data.frame(est = mod$coefficients[1,1],
+                    se = mod$se,
+                    p = mod$pval)
+  rownames(table) <- "Treatment"
+  return(list(table = table,
+              Fstat = Fstat,
+              Pr_F = Pr_F))
+}
+
+r1 <- get_attrition()
+missing_m1 <- r1$table %>% round(., 2)
+missing_m1$se <- paste0("(", missing_m1$se, ")")
+
+r3 <- get_attrition(y = "m3")
+missing_m3 <- r3$table %>% round(., 2)
+missing_m3$se <- paste0("(", missing_m3$se, ")")
+
+missing <- cbind(missing_m1, missing_m3)
+missing <- missing %>% xtable(caption = ) %>% capture.output()
+# rownames(tab) <- c("All", "Benin", "Burkina Faso","Brazil","Mexico","Uganda 1", "Uganda 2")
+missing[4] <- paste0(missing[6], "& \\multicolumn{3}{c}{Vote Choice}&\\multicolumn{3}{c}{Voter Turnout} \\\\")
+missing[5] <- " & Estimate & Std. Error & $p$-value & Estimate & Std. Error & $p$-value \\\\ "
+missing[11] <- missing[9]
+missing[12] <- "\\begin{flushleft}\\textit{Note:} Table shows the effect size of treatment on data missingness in incumbent vote choice and voter turnout across the entire sample. Pr(F) shows the probability of rejecting the null that none of the covariates is differentally determining attrition across treatment and control conditions. All regressions include block fixed effects, standard errors clustered at the level of assingment and inverse propensity weights, and all countries are weighted equally.$^*$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$. \\end{flushleft}"
+missing[13] <- missing[10]
+missing[9] <- paste0("F-stat & \\multicolumn{3}{c}{", r1$Fstat , "}&\\multicolumn{3}{c}{", r3$Fstat, "} \\\\")
+missing[10] <- paste0("Pr(F) & \\multicolumn{3}{c}{", r1$Pr_F , "}&\\multicolumn{3}{c}{", r3$Pr_F, "} \\\\ \\hline \\hline")
+
+writeLines(c("\\begin{table}[h!]", "\\caption{Differential attrition}", missing[2:length(missing)]), file("tables/tab_A_attrition_meta.tex")); close(file("tables/tab_A_attrition_meta.tex"))
+cat(readLines("tables/tab_A_attrition_meta.tex"), sep = "\n")
+```
+
+\clearpage
+
+# Figure 7: Bayesian Meta-Analysis: Vote Choice
+
+```{r, include=F, eval=run_bayes, cache=TRUE}
+  library("rstan")
+  rstan_options(auto_write = TRUE)
+  options(mc.cores = parallel::detectCores())
+```
+
+```{r stan, warning=F, message=F, eval=FALSE}
+# Stan code used in Fig 11.5 and 11.6 to sample from posterior distributions
+
+  bmodel <- "
+  data {
+    int<lower=0> J; // number of countries 
+    real y[J]; // estimated treatment effects
+    real<lower=0> sigma[J]; // s.e. of effect estimates 
+  }
+  parameters {
+    real mu; 
+    real<lower=0> tau;
+    real eta[J];
+  }
+  transformed parameters {
+    real theta[J];
+    for (j in 1:J)
+      theta[j] = mu + tau * eta[j];
+  }
+  model {
+    target += normal_lpdf(eta | 0, 1);
+    target += normal_lpdf(y | theta, sigma);
+  }
+  "
+
+```
+
+```{r posterior_run, include=show_code, eval=run_bayes, cache=TRUE}
+  
+  # Function to make data from model
+  take_results <- function(L) {
+    out <- lapply(L, function(i)  coef(summary(i))[1,1:2])
+    t(matrix(unlist(out),nrow = 2))
+  }
+
+  ### M1: Incumbent vote ###
+  good_m1 <- take_results(lapply(list(t1c1, t1c2, t1c3, t1c4, t1c5, t1c6, t1c7), function(i) i$estimates))
+  bad_m1 <- take_results(lapply(list(t2c1, t2c2, t2c3, t2c4, t2c5, t2c6, t2c7), function(i) i$estimates))
+
+  ### M3: Turn out###
+  good_m3 <- take_results(lapply(list(t3c1, t3c2, t3c3, t3c4, t3c5, t3c6, t3c7), function(i) i$estimates))
+  bad_m3 <- take_results(lapply(list(t4c1, t4c2, t4c3, t4c4, t4c5, t4c6, t4c7), function(i) i$estimates))
+
+```
+
+```{r bayesfig1, include=F, cache=TRUE, eval=run_bayes}
+
+  ### M1: Incumbent vote ###
+  
+  pdf("figures/fig_11.5_posteriors_incumbent.pdf", height = 7, width = 12)
+  mar.default <- c(5,4,4,2) + 0.1
+  par(mfrow = c(1,2),mar = mar.default + c(0, 2, 0, 0))
+  bayes_result(my_data = good_m1, main = "Effects of Good News on Vote Choice")
+  bayes_result(my_data = bad_m1,  main = "Effects of Bad News on Vote Choice")
+  dev.off()
+  
+```
+
+<!-- # ```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Bayesian Meta-analysis: Vote Choice. The solid dots and lines show the estimates from the Bayesian model; the top row shows the overall meta-estimate of $\\mu$ and $\\tau$. The white dots show the original frequentist estimates: in many cases shrinkage can be observed, especially in cases that have effects that are more imprecisely estimated."), echo=FALSE} -->
+<!-- # bayes_result(my_data = good_m1, main = "Effects of Good News on Vote Choice") -->
+<!-- # bayes_result(my_data = bad_m1,  main = "Effects of Bad News on Vote Choice") -->
+<!-- # ``` -->
+<!-- #  -->
+
+<!-- ![](figures/fig_11.5_posteriors_incumbent.pdf){width=100%} -->
+
+\clearpage
+
+# Figure 8: Bayesian Meta-Analysis: Turnout
+
+```{r bayesfig2, include=F, eval=run_bayes, cache=TRUE, message=FALSE, warning=FALSE}
+  
+  ### M3: Turn out###
+  
+  pdf("figures/fig_11.6_posteriors_turnout.pdf", height = 7, width = 12)
+  mar.default <- c(5,4,4,2) + 0.1
+  par(mfrow = c(1,2),mar = mar.default + c(0, 2, 0, 0)) 
+  bayes_result(my_data = good_m3, main = "Effects of Good News on Turnout")
+  bayes_result(my_data = bad_m3,  main = "Effects of Bad News on Turnout")
+  dev.off()
+  
+```
+
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Bayesian Meta-analysis: Turnout. The solid dots and lines show the estimates from the Bayesian model; the top row shows the overall meta-estimate of $\\mu$ and $\\tau$. The white dots show the original frequentist estimates: in many cases shrinkage can be observed, especially in cases that have effects that are more imprecisely estimated."), echo=FALSE, eval=run_bayes}
+  bayes_result(my_data = good_m3, main = "Effects of Good News on Turnout")
+  bayes_result(my_data = bad_m3,  main = "Effects of Bad News on Turnout")
+```
+
+```{r, include=F, eval=run_bayes, cache=TRUE}
+  rm(bayes_result, my_data)
+  gc()
+```
+
+<!-- ![](figures/fig_11.6_posteriors_turnout.pdf) -->
+\clearpage
+
+# Table 11.3: Manipulation check (effect of treatment on correct recollection)
+
+```{r vknowledge, echo=show_code, cache=T, eval=TRUE}
+# source("1d_prep_manipulation.R")
+madat_m30 <- madat %>% subset(!is.na(correct))
+
+m30mc1_o <- estimates(dat = madat_m30, depvar = "correct", exclude_councilors = TRUE)
+m30mc2_o <- estimates(dat = madat_m30, depvar = "correct", weights = FALSE, country = "ben")
+m30mc3_o <- estimates(dat = madat_m30, depvar = "correct", country = "brz")
+m30mc4_o <- estimates(dat = madat_m30, depvar = "correct", weights = FALSE, country = "mex")
+m30mc5_o <- estimates(dat = madat_m30, depvar = "correct", weights = FALSE, country = "ug1")
+m30mc6_o <- estimates(dat = madat_m30, depvar = "correct", weights = TRUE, country = "ug2", exclude_councilors = TRUE)
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab2_mcheck.R")
+  cat(readLines('tables/tab_11.2_mcheck.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+  createt11.2("html")
+```
+
+# Table 11.4: Manipulation check (difference between posteriors and priors)
+
+```{r, echo=show_code}
+madat_m30b <- madat %>% subset(!is.na(post.prior.diff))
+madat_m30b$post.prior.diff <- abs(madat_m30b$post.prior.diff)
+
+# overall news
+m30mc1_g <- estimates(dat = madat_m30b, good = NULL, depvar = "post.prior.diff", exclude_councilors = TRUE)
+m30mc2_g <- estimates(dat = madat_m30b, good = NULL, depvar = "post.prior.diff", weights = FALSE, country = "ben")
+m30mc3_g <- estimates(dat = madat_m30b, good = NULL, depvar = "post.prior.diff", country = "brz")
+# m30mc5_g <- estimates(dat = madat_m30b, good = TRUE, depvar = "post.prior.diff", weights = FALSE, country = "ug1")
+m30mc6_g <- estimates(dat = madat_m30b, good = NULL, depvar = "post.prior.diff", weights = TRUE, country = "ug2", exclude_councilors = TRUE)
+```
+
+```{r gc52, include = FALSE, message=FALSE, warning=FALSE}
+gc()
+```
+
+```{r, results = 'asis', echo=FALSE, include=compile_pdf}
+source("code_formatting/tab2b_mcheck_postpriordiff.R")
+cat(readLines('tables/tab_11.2_mcheck2.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.2_good(type = "html")
+```
+
+\clearpage
+
+# Table 11.5: Effect of information on perception of importance of politician effort and honesty
+
+```{r m5table, echo=show_code, cache=T}
+# M5 ----
+m5gc1 <- results(dat = madat_iter, good = TRUE, depvar = "m5", exclude_councilors = TRUE, sims = n_iter,
+                 ri_p = ri_action, file_rite_obj = "data/temp/ri_m5pool_g_unadj.Rda")
+## good news
+
+m5bc1 <- results(dat = madat_iter, good = FALSE, depvar = "m5", exclude_councilors = TRUE, sims = n_iter,
+                   ri_p = ri_action, file_rite_obj = "data/temp/ri_m5pool_b_unadj.Rda") ## bad news
+# M6 ----
+m6gc1 <- results(dat = madat_iter, good = TRUE, depvar = "m6", exclude_councilors = TRUE, sims = n_iter,
+                   ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_g_unadj.Rda")  ## good news
+
+m6bc1 <- results(dat = madat_iter, good = FALSE, depvar = "m6", exclude_councilors = TRUE, sims = n_iter,
+                   ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_b_unadj.Rda") ## bad news
+
+```
+
+```{r, results='asis', include=compile_pdf, echo=FALSE}
+  source("code_formatting/tab3_effort_honesty.R")
+  cat(readLines('tables/tab_11.3_effort_honesty.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.3(type = "html")
+```
+
+\clearpage
+
+
+# Table 11.6: Effect of information and source credibility on evaluation of politician effort and honesty
+
+```{r m24table, echo = show_code, cache=T}
+# Effort
+m5_m24c1_g <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m5", interactvar = "m24", good = TRUE, 
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m5pool_m24_all_g_unadj.Rda")  ## good news
+
+m5_m24c1_b <- results(dat = madat_iter, sims = n_iter,
+                      depvar = "m5", interactvar = "m24", good = FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m5pool_m24_all_b_unadj.Rda") ## bad news
+
+# Honesty
+m6_m24c1_g <- results(dat = madat_iter, sims = n_iter,
+                      depvar = "m6", interactvar = "m24", good = TRUE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_m24_all_g_unadj.Rda")  ## good news
+
+m6_m24c1_b <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m6", interactvar = "m24", good = FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m6pool_m24_all_b_unadj.Rda")  ## bad news
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab4_effort_honesty.R")
+  cat(readLines('tables/tab_11.4_effort_honesty_credibility.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.4("html")
+```
+
+\clearpage
+
+# Table 11.7: Relationship between evaluation of politician effort and honesty with vote choice
+
+```{r t11.5, echo=show_code, cache=T, warning=FALSE}
+
+madat_m1pool_g <- estimates(dat = madat_iter, weights = FALSE, depvar = "m1", return_df = TRUE, good = TRUE, exclude_councilors =FALSE) # good
+
+  madat_m1pool_g <- madat_m1pool_g %>%
+    group_by(ctry) %>%
+    mutate(m5 = m5 - mean(m5, na.rm = T)) %>%
+    mutate(m6 = m6 - mean(m6, na.rm = T)) %>%
+    ungroup()
+
+m1m5c1g <- felm(m1~m5|fe|0|cl, data = madat_m1pool_g) 
+m1m6c1g <- felm(m1~m6|fe|0|cl, data = madat_m1pool_g) 
+
+madat_m1pool_b <- estimates(dat = madat_iter, weights = FALSE, depvar = "m1", return_df = TRUE, good = FALSE, exclude_councilors =FALSE) # bad
+  
+madat_m1pool_b <- madat_m1pool_b %>%
+    group_by(ctry) %>%
+    mutate(m5 = m5 - mean(m5, na.rm = T)) %>%
+    mutate(m6 = m6 - mean(m6, na.rm = T)) %>%
+    ungroup()
+    
+m1m5c1b <- felm(m1~m5|fe|0|cl, data = madat_m1pool_b) 
+m1m6c1b <- felm(m1~m6|fe|0|cl, data = madat_m1pool_b)
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab5_m1_effort_honesty.R")
+  cat(readLines('tables/tab_11.5_m1_effort_honesty.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.5("html")
+```
+
+\clearpage
+
+<!-- ## Politician Response -->
+
+# Table 11.8: Effect of bad news on politician backlash
+
+```{r t11.6, echo=show_code, cache=T}
+m8bc1 <- results(dat = madat_iter, good = FALSE, depvar = "m8",
+                 ri_p = ri_action, file_rite_obj = "data/temp/ri_m8pool_all_b_unadj.Rda", sims = n_iter)
+
+m8bc2 <- results(dat = madat_iter, good = FALSE, depvar = "m8", weights = FALSE, country = "ben",
+                 ri_p = ri_action, file_rite_obj = "data/temp/ri_m8pool_ben_b_unadj.Rda", sims = n_iter)
+
+m8bc3 <- results(dat = madat_iter, good = FALSE, depvar = "m8", weights = FALSE, country = "mex",
+                 ri_p = ri_action, file_rite_obj = "data/temp/ri_m8pool_mex_b_unadj.Rda", sims = n_iter)
+
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab6_backlash.R")
+  cat(readLines('tables/tab_11.6_backlash.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.6("html")
+rm(m8bc1, m8bc2, m8bc3)
+```
+
+\clearpage
+
+# Table 15: Effect of moderators on incumbent vote choice
+
+```{r coeth_table, echo=show_code, cache=T}
+# Coethnicity
+## Good news - Mean centred 
+madat_m1_coethnic_mc_g <- prepdat_coethnic(madat_m1pool_g, madat_m1pool_g$m1, 0)
+m1_m15mc_g1 <- results(dat = madat_m1_coethnic_mc_g, ri_p = ri_action,
+                       file_rite_obj = "data/temp/ri_m1pool_m15_g_unadj.Rda",
+                       depvar = "m1", interactvar = "m15", sims = n_iter, exclude_councilors = FALSE)
+
+# Bad news - Mean centred
+madat_m1_coethnic_mc_b <- prepdat_coethnic(madat_m1pool_b, madat_m1pool_b$m1, 0)
+m1_m15mc_b1 <- results(dat = madat_m1_coethnic_mc_b, ri_p = ri_action, 
+                       file_rite_obj = "data/temp/ri_m1pool_m15_b_unadj.Rda",
+                       depvar = "m1", interactvar = "m15", sims = n_iter, exclude_councilors = FALSE)
+```
+
+```{r copart_table, echo=show_code, cache=T}
+# Copartisan
+## Good news - dichotomous 
+madat_m1_copart_bin_g <- prepdat_copartisan(madat_m1pool_g, madat_m1pool_g$m1, 1)
+m1_m19bin_g1 <- results(dat = madat_m1_copart_bin_g, ri_p = ri_action, 
+                       file_rite_obj = "data/temp/ri_m1pool_m19_g_unadj.Rda",
+                       depvar = "m1", interactvar = "m19", sims = n_iter, exclude_councilors = FALSE)
+```
+
+```{r,echo=show_code, cache=T}
+## Bad news - dichotomous 
+madat_m1_copart_bin_b <- prepdat_copartisan(madat_m1pool_b, madat_m1pool_b$m1, 1)
+m1_m19bin_b1 <- results(dat = madat_m1_copart_bin_b, ri_p = ri_action, 
+                        file_rite_obj = "data/temp/ri_m1pool_m19_b_unadj.Rda",
+                       depvar = "m1", interactvar = "m19", sims = n_iter, exclude_councilors = FALSE)
+```
+
+```{r client_table, echo=show_code, cache=T}
+# Clientelism
+## Good news - Mean centred 
+madat_m1_client_mc_g <- prepdat_client(madat_m1pool_g, madat_m1pool_g$m1, 0)
+m1_m22mc_g1 <- results(dat = madat_m1_client_mc_g, ri_p = ri_action, 
+                       file_rite_obj = "data/temp/ri_m1pool_m22_g_unadj.Rda",
+                       depvar = "m1", interactvar = "m22", sims = n_iter, exclude_councilors = FALSE)
+```
+
+```{r mods, echo=show_code, cache=T}
+## Bad news - Mean centred 
+madat_m1_client_mc_b <- prepdat_client(madat_m1pool_b, madat_m1pool_b$m1, 0)
+m1_m22mc_b1 <- results(dat = madat_m1_client_mc_b, ri_p = ri_action, 
+                       file_rite_obj = "data/temp/ri_m1pool_m22_b_unadj.Rda",
+                       depvar = "m1", interactvar = "m22", sims = n_iter, exclude_councilors = FALSE)
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab7_moderators.R")
+  cat(readLines('tables/tab_11.7_moderators.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.7("html")
+rm(madat_m1_coethnic_mc_g, madat_m1_coethnic_mc_b, madat_m1_copart_bin_g,
+   madat_m1_copart_bin_b, madat_m1_client_mc_g, madat_m1_client_mc_b)
+```
+
+\clearpage
+
+# Table 16: Effect of information and context heterogenity on incumbent vote choice
+
+```{r, echo=show_code, cache=T}
+# M11 - certainty
+m1_m11c1_g <- results(dat = madat_iter, sims = n_iter,
+                      depvar = "m1", interactvar = "m11", good = TRUE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m11_all_g.Rda")  # good news
+
+m1_m11c1_b <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m1", interactvar = "m11", good = FALSE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m11_all_b.Rda") # bad news
+```
+
+```{r, echo=show_code, cache=T}
+# M26 - secret ballot
+m1_m26c1_g <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m1", interactvar = "m26", good = TRUE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m26_all_g.Rda")  # good news
+```
+
+```{r, echo=show_code, cache=T}
+m1_m26c1_b <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m1", interactvar = "m26", good = FALSE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m26_all_b.Rda") # bad news
+
+```
+
+```{r, echo=show_code, cache=T}
+# M27 - free and fair election
+m1_m27c1_g <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m1", interactvar = "m27", good = TRUE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m27_all_g.Rda")  # good news
+```
+
+```{r,echo=show_code, cache=T}
+m1_m27c1_b <- results(dat = madat_iter, sims = n_iter, 
+                      depvar = "m1", interactvar = "m27", good = FALSE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m27_all_b.Rda") # bad news
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab8_context_hetero.R")
+  cat(readLines('tables/tab_11.8_context_hetero.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.8("html")
+```
+
+\clearpage
+
+# Table 17: Effect of information and electoral competition on vote choice
+
+
+```{r, eval = T, echo=show_code, cache=T}
+# low competition ----
+# good news
+madat_m1_m25lpool_g <- madat_m1pool_g %>%
+	drop_na(m25) %>%
+	filter(!ctry %in% c("bf","ug2")) %>%
+	group_by(ctry) %>%
+	filter(m25 <= median(m25)) %>%
+	ungroup()
+
+m1_m25lc1_g <- results(dat = madat_m1_m25lpool_g, sims = n_iter,
+                       ri_p = ri_action, file_rite_obj = "data/temp/r1_m1pool_m25l_g.Rda",
+                       good = TRUE, depvar = "m1")
+rm(madat_m1_m25lpool_g)
+```
+
+```{r, echo=show_code, cache=T}
+# bad news 
+madat_m1_m25lpool_b <- madat_m1pool_b %>%
+	drop_na(m25) %>%
+	filter(!ctry %in% c("bf","ug2")) %>%
+	group_by(ctry) %>%
+	filter(m25 <= median(m25)) %>%
+	ungroup()
+
+m1_m25lc1_b <- results(dat = madat_m1_m25lpool_b, sims = n_iter,
+                       ri_p = ri_action, file_rite_obj = "data/temp/r1_m1pool_m25l_b.Rda",
+                       good = FALSE, depvar = "m1")
+rm(madat_m1_m25lpool_b)
+
+```
+
+```{r, echo=show_code, cache=T}
+
+# high competition ----
+# good news
+madat_m1_m25hpool_g <- madat_m1pool_g %>%
+	drop_na(m25) %>%
+	filter(!ctry %in% c("bf","ug2")) %>%
+	group_by(ctry) %>%
+	filter(m25 > median(m25)) %>%
+	ungroup()
+
+m1_m25hc1_g <- results(dat = madat_m1_m25hpool_g, sims = n_iter,
+                       ri_p = ri_action, file_rite_obj = "data/temp/r1_m1pool_m25h_g.Rda",
+                       good = TRUE, depvar = "m1", skip_prep = TRUE)
+rm(madat_m1_m25hpool_g)
+```
+
+```{r, echo=show_code, cache=T}
+# bad news regressions
+madat_m1_m25hpool_b <- madat_m1pool_b %>%
+	drop_na(m25) %>%
+	filter(ctry!="bf"&ctry!="ug2") %>%
+	group_by(ctry) %>%
+	filter(m25 > median(m25)) %>%
+	ungroup()
+
+
+m1_m25hc1_b <- results(dat = madat_m1_m25hpool_b, sims = n_iter,
+                       ri_p = ri_action, file_rite_obj = "data/temp/r1_m1pool_m25h_b.Rda",
+                       good = FALSE, depvar = "m1", skip_prep = TRUE)
+rm(madat_m1_m25hpool_b)
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf}
+  source("code_formatting/tab9_competition.R")
+  cat(readLines('tables/tab_11.9_competition.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.9("html")
+```
+
+\clearpage
+
+# Table 18: Effect of information and intervention-specific heterogenity on vote choice
+
+```{r, eval = T, echo=show_code, cache=T}
+
+t1nc1_g <- results(dat = madat_iter, sims = n_iter, depvar = "m1", good = TRUE, with_N = TRUE, exclude_councilors =FALSE,
+                   ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_N_all_g.Rda")   #good news, nij
+
+t1nc1_b <- results(dat = madat_iter, sims = n_iter, depvar = "m1", good = FALSE, with_N = TRUE, exclude_councilors =FALSE,
+                   ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_N_all_b.Rda")  #bad news, nij
+```
+```{r, echo=show_code, cache=T}
+
+# M24 - credibliity
+m1_m24c1_g <- results(dat = madat_iter, sims = n_iter, depvar = "m1", interactvar = "m24", good = TRUE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m24_all_g.Rda") #good news
+
+m1_m24c1_b <- results(dat = madat_iter, sims = n_iter, depvar = "m1", interactvar = "m24", good = FALSE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m24_all_b.Rda") #bad news
+```
+```{r, echo=show_code, cache=T}
+
+# m23 - salience
+m1_m23c1_g <- results(dat = madat_iter, sims = n_iter, depvar = "m1", interactvar = "m23", good = TRUE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m23_all_g.Rda")  #good news
+
+m1_m23c1_b <- results(dat = madat_iter, sims = n_iter, depvar = "m1", interactvar = "m23", good = FALSE, exclude_councilors =FALSE,
+                      ri_p = ri_action, file_rite_obj = "data/temp/ri_m1pool_m23_all_b.Rda") #bad news
+
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf, warning=FALSE}
+  source("code_formatting/tab10_intervention_hetero.R")
+  cat(readLines('tables/tab_11.10_intervention_hetero.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.10(type = "html")
+```
+
+\clearpage
+
+<!-- # Looking Forward: Does Public Information Boost
+Informational Effects? -->
+
+
+# Table 19: Interaction analysis: Effect of good news on incumbent vote choice
+
+```{r, echo=F, results='asis', warning=FALSE}
+
+  t1ncovc2 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", exclude_councilors =FALSE)
+  t1ncovc3 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ben")
+  t1ncovc4 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "brz")
+  t1ncovc5 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "bf")
+  t1ncovc6 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "mex")
+  t1ncovc7 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ug1")
+  t1ncovc8 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2")
+  t1ncovc9 <- estimates(cov = cov, good = TRUE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2", exclude_councilors =FALSE)
+
+  source("code_formatting/tab11_incumbent_interaction_good.R")
+  gentab11()
+  
+  t11.11 <- capture.output(gentab11())
+  
+  fileConn <- file("tables/tab_11.11_interaction_incumbent_good.tex")
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.11[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.11[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1a}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+
+```
+\clearpage
+
+# Table 20: Interaction analysis: Effect of bad news on incumbent vote choice
+
+```{r, echo=F, results='asis', warning=FALSE}
+
+  t2ncovc2 <- estimates(cov = cov, good = FALSE, with_N = TRUE, depvar = "m1", exclude_councilors =FALSE)
+  t2ncovc3 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ben")
+  t2ncovc4 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "brz")
+  t2ncovc5 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "bf")
+  t2ncovc6 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "mex")
+  t2ncovc7 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = FALSE, depvar = "m1", country = "ug1")
+  t2ncovc8 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2")
+  t2ncovc9 <- estimates(cov = cov, good = FALSE, with_N = TRUE, weights = TRUE, depvar = "m1", country = "ug2", exclude_councilors =FALSE)
+
+  source("code_formatting/tab12_incumbent_interaction_bad.R")
+  gentab12()
+  t11.12 <- capture.output(gentab12())
+  
+  fileConn <- file("tables/tab_11.12_interaction_incumbent_bad.tex")
+  
+  writeLines(unlist(list("\\begin{table}[H]\\centering",
+                         t11.12[3:4],
+                         "\\scalebox{0.7}{",
+                         t11.12[5:60],
+                         "\\end{tabular}}",
+                         "\\begin{flushleft} \\hspace{1cm} \\scriptsize{{\\textit{Note:}  The table presents results from fitting Equation \\ref{metaeq.main1b}. Standard errors are clustered at the level of treatment assignment. Results in columns (1) and (7) include vote choice for LCV councilors as well as chairs in the Uganda 2 study (see Buntaine et al., Chapter 8). This means each respondent in the Uganda 2 study enters twice, and we cluster the standard errors at the individual level. $^{*}$ $p<0.05$; $^{**}$ $p<0.01$; $^{***}$ $p<0.001$ }} \\end{flushleft} \\end{table}")), fileConn)
+  close(fileConn)
+```
+\clearpage
+
+# Table 21: Private vs Public Information: Effect of good news on incumbent vote choice
+
+```{r, echo=show_code, cache=T}
+
+# Load and append data
+files <- list.files("data/temp/pubpvt", pattern = "pp_covinter", full.names = TRUE)
+for (f in files) {
+  load(f)
+}
+
+madat <- rbind.fill(ben, mexsur, ug1)
+madat$inv_wts <- NA
+madat$inv_wts2 <- NA
+
+m1c1_g <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = TRUE)
+m1c2_g <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = TRUE, 
+                  country = "ben", weights = FALSE)
+m1c3_g <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = TRUE, 
+                  country = "mex", weights = FALSE)
+m1c4_g <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = TRUE, 
+                  country = "ug1", weights = FALSE)
+f_g <- f_equalcoeff(estimates(depvar = "m1", treat1and2 = TRUE, good = TRUE, return_df = TRUE), "m1")
+
+m1c1_b <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = FALSE)
+m1c2_b <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = FALSE, 
+                  country = "ben", weights = FALSE)
+m1c3_b <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = FALSE, 
+                  country = "mex", weights = FALSE)
+m1c4_b <- results(ri_p = "ignore", depvar = "m1", treat1and2 = TRUE, good = FALSE, 
+                  country = "ug1", weights = FALSE)
+f_b <- f_equalcoeff(estimates(depvar = "m1", treat1and2 = TRUE, good = TRUE, return_df = TRUE), "m1")
+
+```
+
+```{r, results='asis', echo=FALSE, include=compile_pdf, warning=FALSE}
+  source("code_formatting/tab13_pvt_pub_good.R")
+  cat(readLines('tables/tab_11.13_pvt_pub_good.tex'), sep = '\n')
+```
+
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.13("html")
+```
+
+\clearpage
+
+# Table 22: Private vs Public Information: Effect of bad news on incumbent vote choice
+
+```{r, echo=F, results='asis'}
+  source("code_formatting/tab14_pvt_pub_bad.R")
+  cat(readLines('tables/tab_11.14_pvt_pub_bad.tex'), sep = '\n')
+```
+```{r, results = 'asis', echo=FALSE, include=!compile_pdf}
+print_t11.15("html")
+```
+
+

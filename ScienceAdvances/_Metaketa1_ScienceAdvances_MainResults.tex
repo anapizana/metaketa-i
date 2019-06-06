@@ -1,0 +1,382 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Replication code for Voter information campaigns and political accountability: Cumulative findings from a preregistered meta-analysis of coordinated trials},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Replication code for `Voter information campaigns and political
+accountability: Cumulative findings from a preregistered meta-analysis
+of coordinated trials'}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{February 22, 2019}
+
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\clearpage
+
+\section{Notes on replication script}\label{notes-on-replication-script}
+
+\begin{itemize}
+\item
+  This .Rmd file produces all tables, and figures reported in Dunning,
+  Thad et al. 2019. ``Voter information campaigns and political
+  accountability: Cummulative findings from a preregistered
+  meta-analysis of coordinated trials.'' \emph{Science Advances}.
+\item
+  The code exports results to folders ``tables'' and ``figures'' in this
+  file's directory.
+\item
+  Replication options include:
+
+  \begin{itemize}
+  \item
+    \texttt{prep}: if \texttt{TRUE}, generate data from raw files, if
+    \texttt{FALSE}, loads cleaned data
+  \item
+    \texttt{n\_iter}: number of permutations of treatment assignment
+    used in randomization inference analysis.
+  \item
+    \texttt{load\_iter\_matrix}: if \texttt{FALSE}, generate
+    \texttt{n\_iter} columns of treatment assignment according to each
+    study's assignment strategy. If \texttt{TRUE}, load existing
+    assignment matrix with 2,000 iterations of treatment assignment.
+  \item
+    \texttt{ri\_action}: treatment effects and \emph{p}-values from
+    randomization inference can be generated from scratch if set to
+    \texttt{"generate"}, loaded from existing file if (\texttt{"load"}),
+    or not returned (\texttt{"ignore"}) in results. Note that these
+    estimations may take a few hours depending on the value of
+    \texttt{n\_iter}.
+  \item
+    \texttt{run\_bayes}: if \texttt{TRUE}, will run Monte Carlo
+    simulations. \texttt{run\_bayes\ \textless{}-\ FALSE} will skip the
+    Bayesian analysis.
+  \item
+    \texttt{load\_specification\_matrices\ \textless{}-\ FALSE} will
+    estimate, from scratch, treatment effects under all combinations of
+    specification choices. Likewise,
+    \texttt{load\_mde\_data\ \textless{}-\ FALSE} will re-run the
+    diagnostic process for the minimal detectable effect analysis.
+    Setting these options to \texttt{FALSE} will take several hours to
+    run on an average machine.
+  \item
+    \texttt{full\_m1}: if \texttt{FALSE} turns off imputing \texttt{0}s
+    for vote choice for cases with where voter turnout is 0 in the
+    cleaned data.
+  \end{itemize}
+\item
+  For a full clean replication empty the folders \texttt{figures} and
+  \texttt{tables} and subfolder \texttt{data/temp} and set options:
+  \texttt{prep\ \textless{}-\ TRUE},
+  \texttt{ri\_action\ \textless{}-\ "generate"},
+  \texttt{run\_bayes\ \textless{}-\ TRUE},
+  \texttt{load\_iter\_matrix\ \textless{}-\ FALSE},
+  \texttt{load\_specification\_matrices\ \textless{}-\ FALSE},
+  \texttt{load\_mde\_data\ \textless{}-\ FALSE}.
+\item
+  This code requires installation of Rstan (unless
+  \texttt{run\_bayes\ \textless{}-\ FALSE}). See installation
+  instructions
+  \href{https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started}{here}.
+\item
+  The package \texttt{xlsx} requires a 64 bit Java install on PCs; for
+  more detail see \url{https://java.com/en/download/win10.jsp}.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \NormalTok{prep <-}\StringTok{ }\OtherTok{FALSE}
+  \NormalTok{n_iter <-}\StringTok{ }\DecValTok{2000}
+  \NormalTok{load_iter_matrix <-}\StringTok{ }\OtherTok{TRUE}
+  \NormalTok{ri_action <-}\StringTok{ "generate"}
+  \NormalTok{run_bayes <-}\StringTok{ }\OtherTok{FALSE}
+  \NormalTok{load_specification_matrices <-}\StringTok{ }\OtherTok{FALSE}
+  \NormalTok{load_mde_data <-}\StringTok{ }\OtherTok{TRUE}
+  \NormalTok{full_m1 <-}\StringTok{ }\OtherTok{TRUE}
+\end{Highlighting}
+\end{Shaded}
+
+\clearpage
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{if(prep)\{}
+  \NormalTok{madat <-}\StringTok{ }\KeywordTok{pool_studies}\NormalTok{(}
+    \DataTypeTok{add_vars=} \KeywordTok{c}\NormalTok{(}\StringTok{"nij"}\NormalTok{, }\StringTok{"Q_alt"}\NormalTok{, }\StringTok{"N_alt"}\NormalTok{, }\StringTok{"lc5.councillor.party.switch"}\NormalTok{, }
+                \StringTok{"lc5.chair.party.switch"}\NormalTok{, }\StringTok{"lc5.councillor.redistricted2016"}\NormalTok{))}
+  \NormalTok{if(full_m1)\{}
+    \NormalTok{madat$m1[}\KeywordTok{is.na}\NormalTok{(madat$m1) &}\StringTok{ }\NormalTok{madat$m3==}\DecValTok{0}\NormalTok{] <-}\StringTok{ }\DecValTok{0}
+    \CommentTok{#m3==0 in Burkina Faso means unlikely to vote or definitely not voting.}
+    \NormalTok{madat$m1[madat$m1==}\DecValTok{1} \NormalTok{&}\StringTok{ }\NormalTok{madat$m3==}\DecValTok{0} \NormalTok{&}\StringTok{ }\NormalTok{madat$ctry ==}\StringTok{ "bf"}\NormalTok{] <-}\StringTok{ }\DecValTok{0}
+    \NormalTok{madat_raw <-}\StringTok{ }\KeywordTok{pool_studies}\NormalTok{(}\DataTypeTok{dir =} \StringTok{"data/temp"}\NormalTok{)}
+    \NormalTok{madat$m1_against <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(madat_raw$m1==}\DecValTok{0} \NormalTok{&}\StringTok{ }\NormalTok{madat$m3==}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)  }
+    \NormalTok{madat$m1_against[}\KeywordTok{is.na}\NormalTok{(madat$m1_against) &}\StringTok{ }\NormalTok{madat$m3==}\DecValTok{0} \NormalTok{&}\StringTok{ }\NormalTok{madat$ctry !=}\StringTok{ "bf"}\NormalTok{] <-}\StringTok{ }\DecValTok{0}
+    \NormalTok{madat$m1_against[madat$m1==}\DecValTok{1} \NormalTok{&}\StringTok{ }\NormalTok{madat$m3==}\DecValTok{0} \NormalTok{&}\StringTok{ }\NormalTok{madat$ctry ==}\StringTok{ "bf"}\NormalTok{] <-}\StringTok{ }\DecValTok{0}
+    \NormalTok{madat$m1NA <-}\StringTok{ }\NormalTok{(}\KeywordTok{is.na}\NormalTok{(madat$m1) &}\StringTok{ }\NormalTok{madat$m3 ==}\StringTok{ }\DecValTok{1}\NormalTok{)}
+      
+  \NormalTok{\}}
+  \KeywordTok{save}\NormalTok{(madat, }\DataTypeTok{file =} \StringTok{"data/temp/madat.Rda"}\NormalTok{)}
+  \KeywordTok{write.csv}\NormalTok{(madat, }\StringTok{"madat.csv"}\NormalTok{)}
+\NormalTok{\}}
+
+\KeywordTok{load}\NormalTok{(}\StringTok{"data/temp/madat.Rda"}\NormalTok{)}
+ 
+\CommentTok{# Load previously generated permutation matrices}
+\NormalTok{if(load_iter_matrix)\{}
+  \KeywordTok{load}\NormalTok{(}\StringTok{"data/temp/assign_iter.Rda"}\NormalTok{)}
+\NormalTok{\}else\{}
+  \KeywordTok{system.time}\NormalTok{(assign_iter <-}\StringTok{ }\KeywordTok{assign_i}\NormalTok{(madat, n_iter))}
+  \KeywordTok{save}\NormalTok{(assign_iter, }\DataTypeTok{file =} \StringTok{"data/temp/assign_iter.Rda"}\NormalTok{)}
+\NormalTok{\}}
+  \NormalTok{madat_iter <-}\StringTok{ }\KeywordTok{cbind.data.frame}\NormalTok{(madat, assign_iter)}
+  \KeywordTok{rm}\NormalTok{(assign_iter)}
+  \KeywordTok{save}\NormalTok{(madat_iter, }\DataTypeTok{file =} \StringTok{"data/temp/madat_iter.Rda"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Figure 1: Prior Beliefs and Politician
+Performance}\label{figure-1-prior-beliefs-and-politician-performance}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{_Metaketa1_ScienceAdvances_MainResults_files/figure-latex/unnamed-chunk-3-1.pdf}
+\caption{Prior Beliefs and Politician Performance. The figure plots
+performance information (Q) against prior beliefs (P) in each of the
+studies (left side) and across all studies (right side). Voters are in
+the good news group (gray) if information exceeds priors (\(Q>P\)), or
+if it confirms positive priors (\(P=Q\), and \(Q\) is greater than
+median); otherwise, they are in the bad news group (black). On the right
+side, \(P\) and \(Q\) are standardized with a mean of 0 and standard
+deviation of 1 in each study. The density of the dotted areas is
+proportionate to the number of voters at each value of \(P\) and \(Q\);
+for the pooled analysis, the rugs along the horizontal and vertical axes
+indicate the distribution of values. The Mexico study lacked a
+pre-intervention survey, thus we determine the good news and bad news
+groups according to whether \(Q\) is greater than median. The red lines
+indicate the linear fit between priors and information. For the pooled
+analysis, the slope of the fit is 0.071; the correlation is 0.053.}
+\end{figure}
+
+\section{Figure 2: Treatment Effect of Information on Incumbent Vote
+Choice}\label{figure-2-treatment-effect-of-information-on-incumbent-vote-choice}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \NormalTok{cov <-}\StringTok{ "m14i+m17i+m18i+m20i+m21i+m22i+m24i+m26i+m27i"}
+
+  \NormalTok{t1c1 <-}\StringTok{  }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_all_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{exclude_councilors =} \OtherTok{FALSE}\NormalTok{)}
+  \NormalTok{t1c2 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ben_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ben"}\NormalTok{)}
+  \NormalTok{t1c3 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_brz_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{TRUE}\NormalTok{,  }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"brz"}\NormalTok{)}
+  \NormalTok{t1c4 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_bf_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"bf"}\NormalTok{)}
+  \NormalTok{t1c5 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_mex_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"mex"}\NormalTok{)}
+  \NormalTok{t1c6 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ug1_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ug1"}\NormalTok{)}
+  \NormalTok{t1c7 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ug2_g_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{TRUE}\NormalTok{,  }\DataTypeTok{good =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ug2"}\NormalTok{,}
+                  \DataTypeTok{exclude_councilors =}\OtherTok{FALSE}\NormalTok{)}
+  
+   \NormalTok{t2c1 <-}\StringTok{  }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_all_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{exclude_councilors =}\OtherTok{FALSE}\NormalTok{)}
+  \NormalTok{t2c2 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ben_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ben"}\NormalTok{)}
+  \NormalTok{t2c3 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_brz_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{TRUE}\NormalTok{,  }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"brz"}\NormalTok{)}
+  \NormalTok{t2c4 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_bf_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"bf"}\NormalTok{)}
+  \NormalTok{t2c5 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_mex_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"mex"}\NormalTok{)}
+  \NormalTok{t2c6 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ug1_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ug1"}\NormalTok{)}
+  \NormalTok{t2c7 <-}\StringTok{ }\KeywordTok{results}\NormalTok{(}\DataTypeTok{dat =} \NormalTok{madat_iter, }\DataTypeTok{ri_p =} \NormalTok{ri_action, }\DataTypeTok{sims =} \NormalTok{n_iter,}
+                  \DataTypeTok{file_rite_obj =} \StringTok{"data/temp/ri_m1pool_ug2_b_unadj.Rda"}\NormalTok{,}
+                  \DataTypeTok{depvar =} \StringTok{"m1"}\NormalTok{, }\DataTypeTok{weights =} \OtherTok{TRUE}\NormalTok{,  }\DataTypeTok{good =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{country =} \StringTok{"ug2"}\NormalTok{, }
+                  \DataTypeTok{exclude_councilors =}\OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{figure}
+
+{\centering \includegraphics[width=\linewidth]{_Metaketa1_ScienceAdvances_MainResults_files/figure-latex/unnamed-chunk-5-1} 
+
+}
+
+\caption{Meta-Analysis: Country-Specific Effects on Vote Choice. Estimated change in the proportion of voters who support an incumbent after receiving good news (left panel) or bad news (right panel) about the politician, compared to receiving no information. Unadjusted estimates. For estimating the average of the study-specific effects (top row), each study is weighted by the inverse of its size. Horizontal lines show 95\% confidence intervals for the estimated change. Entries under each estimate show $p$-values calculated by randomization inference. In all cases, the differences are close to zero and statistically insignificant.}\label{fig:unnamed-chunk-5}
+\end{figure}
+
+\clearpage
+
+\section{Figure 3: Treatment Effect of Information on Voter
+Turnout}\label{figure-3-treatment-effect-of-information-on-voter-turnout}
+
+\begin{figure}
+
+{\centering \includegraphics[width=\linewidth]{_Metaketa1_ScienceAdvances_MainResults_files/figure-latex/unnamed-chunk-10-1} 
+
+}
+
+\caption{Meta-Analysis: Country-Specific Effects on Turnout. See notes to Figure \ref{vote_effects}. In all but one test, the differences are close to zero and are statistically insignificant, using p-values from randomization inference.}\label{fig:unnamed-chunk-10}
+\end{figure}
+
+\clearpage
+
+\section{Figures 4 and 5: Robustness of Findings Across
+Specifications}\label{figures-4-and-5-robustness-of-findings-across-specifications}
+
+\begin{figure}
+
+{\centering \includegraphics[width=\linewidth]{_Metaketa1_ScienceAdvances_MainResults_files/figure-latex/unnamed-chunk-11-1} 
+
+}
+
+\caption{Specification Distribution: Vote for Incumbent. Distribution of average treatment effects on vote for incumbent for a given specification choice, varying all other choices. Darkened vertical lines show estimates for which $p<0.05$. The dashed vertical line indicates average treatment effect reported in Table 11.1.}\label{fig:unnamed-chunk-11}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=\linewidth]{_Metaketa1_ScienceAdvances_MainResults_files/figure-latex/unnamed-chunk-12-1} 
+
+}
+
+\caption{Specification Distribution: Turnout. Distribution of average treatment effects on voter turnout for a given specification choice, varying all other choices. Darkened vertical lines show estimates for which $p<0.05$. The dashed vertical line indicates average treatment effect reported in Table 11.1.}\label{fig:unnamed-chunk-12}
+\end{figure}
+
+
+\end{document}
