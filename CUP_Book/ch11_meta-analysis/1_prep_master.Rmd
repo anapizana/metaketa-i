@@ -23,42 +23,42 @@ opts_knit$set(warning = FALSE, message = FALSE)
 ```{r, warning=FALSE}
 ## mexico
 # load survey data
-  mexsurdat <- read.dta13("../data/raw/mex/SURVEYedited.dta")
+  mexsurdat <- read.dta13("../../data/raw/mex/SURVEYedited.dta")
 
 # load municipality-level data 
-  mexanaldat <- read.dta13("../data/raw/mex/ANALYSISedited.dta")
+  mexanaldat <- read.dta13("../../data/raw/mex/ANALYSISedited.dta")
 
 # load flyer data
-  flyer <- read.xlsx2("../data/raw/mex/flyer.xlsx", 1, stringsAsFactors=FALSE)
+  flyer <- read.xlsx2("../../data/raw/mex/flyer.xlsx", 1, stringsAsFactors=FALSE)
   
 # load precinct data
-  mexprecdat <- read.dta13("../data/raw/mex/ANALYSISedited.dta")
+  mexprecdat <- read.dta13("../../data/raw/mex/ANALYSISedited.dta")
 
 ## benin
 # load the survey data
-  # ben <- read.dta13("../data/raw/ben/data_with_randblocks/benin_survey.dta")
-  ben <- read.dta13("../data/raw/ben/data_with_randblocks/benin_survey_v2_201711213.dta")
+  # ben <- read.dta13("../../data/raw/ben/data_with_randblocks/benin_survey.dta")
+  ben <- read.dta13("../../data/raw/ben/data_with_randblocks/benin_survey_v2_201711213.dta")
   if(!"Tout à fait probable" %in% unique(ben$m27)) stop("Benin data is not being imported correctly. Please make sure to read this script with UTF-8 encoding. This means that special characters such as '`' are being read correctly. See https://support.rstudio.com/hc/en-us/articles/200532197-Character-Encoding for more details.")
 
 ## uganda 1
 # load the survey data
-  ug1dat_ind <- read.dta13("../data/raw/ug1/MTC_GE_individual_analysis.dta")
+  ug1dat_ind <- read.dta13("../../data/raw/ug1/MTC_GE_individual_analysis.dta")
   # GitHub upload limits file size 100MB
-  # ug1dat <- read.dta13("../data/raw/ug1/mtc_analysis_formetaketa.dta")
-  # saveRDS(ug1dat, "../data/raw/ug1/mtc_analysis_formetaketa.RDS")
-  readRDS(file = "../data/raw/ug1/mtc_analysis_formetaketa.RDS")
+  # ug1dat <- read.dta13("../../data/raw/ug1/mtc_analysis_formetaketa.dta")
+  # saveRDS(ug1dat, "../../data/raw/ug1/mtc_analysis_formetaketa.RDS")
+  readRDS(file = "../../data/raw/ug1/mtc_analysis_formetaketa.RDS")
 
 ## brazil
 # importing data that the team has already cleaned a lot
-  brz <- read_csv("../data/raw/brz/panel_cleaned_20171213.csv")
+  brz <- read_csv("../../data/raw/brz/panel_cleaned_20171213.csv")
   
 ## burkina faso
 # load analysis data (pre-cleaned for the most part)
-  bf <- read.csv2(file = "../data/raw/bf/Burkina Faso Metaketa Individual Data 2017-10-09.csv", header = T)
+  bf <- read.csv2(file = "../../data/raw/bf/Burkina Faso Metaketa Individual Data 2017-10-09.csv", header = T)
   
 ## uganda 2  
 # load the near-raw dataset
-  ug2dat <- read.csv("../data/raw/ug2/ANON_Budget_Replication_170207.csv")
+  ug2dat <- read.csv("../../data/raw/ug2/ANON_Budget_Replication_170207.csv")
 
 ```
 
