@@ -1,0 +1,7 @@
+	female	age	education	income	logincome	employed	turnout2012	voted_incumbent2012
+	b/se	b/se	b/se	b/se	b/se	b/se	b/se	b/se
+Information treatment	0.025	-0.358	-0.064	-0.010	-0.002	-0.006	0.008	-0.027
+	(0.018)	(0.501)	(0.149)	(0.090)	(0.018)	(0.016)	(0.012)	(0.021)
+Control mean	0.62	44.63	8.13	2.55	1.16	0.42	0.63	0.55
+Treatment mean								
+Observations	3019	2967	3012	2680	2680	3014	3019	1908
