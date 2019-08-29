@@ -1,0 +1,13 @@
+		(1)	(2)
+		Good News	Bad News
+VARIABLES	LABELS	Official	Official
+			
+treatment	Treatment	-0.04	0.01
+		(0.03)	(0.01)
+Constant	Constant	0.92***	0.89***
+		(0.02)	(0.01)
+			
+Observations		51	33
+R-squared		0.69	0.62
+Robust standard errors in parentheses			
+*** p<0.01, ** p<0.05, * p<0.1			

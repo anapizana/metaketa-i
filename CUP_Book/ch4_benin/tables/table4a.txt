@@ -1,0 +1,21 @@
+		(1)	(2)	(3)	(4)
+		Good News	Bad News	Good News	Bad News
+VARIABLES	LABELS	Survey	Survey	Survey	Survey
+					
+treatment	Treatment	-0.03	0.02	-0.03	-0.10
+		(0.03)	(0.02)	(0.05)	(0.08)
+N_good	Distance between Prior and Performance (good news)			-0.06	
+				(0.05)	
+Ng_inter	Treatment x Distance (good news)			0.02	
+				(0.06)	
+N_bad	Distance between Prior and Performance (bad news)				-0.07
+					(0.04)
+Nb_inter	Treatment x Distance (bad news)				0.05
+					(0.06)
+Constant	Constant	0.89***	0.89***	0.90***	0.61***
+		(0.02)	(0.02)	(0.03)	(0.05)
+					
+Observations		524	428	221	161
+R-squared		0.19	0.06	0.29	0.29
+Robust standard errors in parentheses					
+*** p<0.01, ** p<0.05, * p<0.1					
